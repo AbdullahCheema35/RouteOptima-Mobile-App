@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:route_optima_mobile_app/screens/routes.dart';
+import 'package:route_optima_mobile_app/screens/new_screen.dart';
 
 void main() {
   print("Starting!");
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const HomeScreen(),
+      home: const FlutterFlowScreen(),
     );
   }
 }
