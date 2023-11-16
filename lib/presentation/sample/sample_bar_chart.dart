@@ -4,7 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 class BarChartSample7 extends StatefulWidget {
-  BarChartSample7({super.key, Key? key});
+  BarChartSample7({super.key});
 
   final shadowColor = Colors.grey.withOpacity(0.8);
   final dataList = [
