@@ -23,6 +23,10 @@ class RoutesNotifier extends Notifier<List<Trip>> {
     // No need to call "notifyListeners" or anything similar. Calling "state ="
     // will automatically rebuild the UI when necessary.
   }
+
+  void concatRoutes(List<Trip> routes) {
+    state = [...state, ...routes];
+  }
 }
 
 // Finally, we are using NotifierProvider to allow the UI to interact with

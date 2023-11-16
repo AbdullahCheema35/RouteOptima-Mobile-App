@@ -9,7 +9,9 @@ class SubrouteDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Subroute Details')),
+      appBar: AppBar(
+        title: const Text('Parcel Details'),
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

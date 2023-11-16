@@ -9,7 +9,7 @@ final routeListProvider = Provider<List<Trip>>((ref) {
   final routeList = ref.watch(routesNotifierProvider);
   ref.listen(routeStreamProvider, (previous, next) async {
     final routeStreamObject = await ref.read(routeStreamProvider.future);
-    ref.read(routesNotifierProvider.notifier).addRoute(routeStreamObject);
+    ref.read(routesNotifierProvider.notifier).concatRoutes(routeStreamObject);
   });
   // routeStreamObject.then((value) {
   //   ref.read(routesNotifierProvider.notifier).addRoute(value);

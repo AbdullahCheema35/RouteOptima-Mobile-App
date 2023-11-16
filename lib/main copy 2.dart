@@ -26,13 +26,6 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Flutter Pie Chart Example'),
-      ),
-      body: Center(
-        child: DashboardPage(),
-      ),
-    );
+    return const DashboardPage();
   }
 }

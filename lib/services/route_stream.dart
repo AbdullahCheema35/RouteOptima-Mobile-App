@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:route_optima_mobile_app/models/customer.dart';
@@ -12,18 +13,18 @@ final websocketClientProvider = Provider<WebsocketClient>(
   },
 );
 
-final routeStreamProvider = StreamProvider<Trip>((ref) {
+final routeStreamProvider = StreamProvider<List<Trip>>((ref) {
   final wsClient = ref.watch(websocketClientProvider);
   return wsClient.getRouteStream();
 });
 
 abstract class WebsocketClient {
-  Stream<Trip> getRouteStream();
+  Stream<List<Trip>> getRouteStream();
 }
 
 class FakeWebsocketClient implements WebsocketClient {
   @override
-  Stream<Trip> getRouteStream() async* {
+  Stream<List<Trip>> getRouteStream() async* {
     // String jsonFile = './lib/models/dummy_data/routes.json';
     // String jsonFile = 'assets/routes.json';
     List<Trip> routes = getTrips();
@@ -33,13 +34,19 @@ class FakeWebsocketClient implements WebsocketClient {
       routes = getHardCodedRoutes();
       routesLength = routes.length;
     }
+    int globalIValue = 0;
     int i = 0;
     while (true) {
-      print('i: $i, waiting 10 seconds');
-      await Future.delayed(const Duration(milliseconds: 10000));
+      // print('i: $i, waiting 10 seconds');
+      if (globalIValue > 0) {
+        await Future.delayed(const Duration(milliseconds: 6000000));
+      }
+      globalIValue++;
       Trip currentRoute = routes[i];
       i = (i + 1) % routesLength;
-      yield currentRoute;
+      Trip nextRoute = routes[i];
+
+      yield [currentRoute, nextRoute];
     }
   }
 
@@ -57,6 +64,7 @@ class FakeWebsocketClient implements WebsocketClient {
           arrivalTime: '2023-11-01T08:00:00',
           distance: 5.0,
           parcelId: 'Parcel1',
+          weight: 2.0,
         ),
         Subroute(
           customer: Customer(
@@ -68,6 +76,7 @@ class FakeWebsocketClient implements WebsocketClient {
           arrivalTime: '2023-11-01T09:30:00',
           distance: 4.5,
           parcelId: 'Parcel2',
+          weight: 3.0,
         ),
         // Add more subroutes if needed
       ],
@@ -92,6 +101,9 @@ class FakeWebsocketClient implements WebsocketClient {
       final jsonString = file.readAsStringSync();
       final jsonData = json.decode(jsonString);
 
+      // Generate a random real number between 0.5 and 5.0
+      var rng = Random();
+
       List<Trip> routes = List<Trip>.from(
         jsonData['routes'].map(
           (routeData) {
@@ -105,11 +117,14 @@ class FakeWebsocketClient implements WebsocketClient {
                     phoneNumber: subrouteData['customer']['phone_number'],
                   );
 
+                  var generatedWeight = rng.nextDouble() * (5.0 - 0.5) + 0.5;
+
                   return Subroute(
                     customer: customer,
                     arrivalTime: subrouteData['arrival_time'],
                     distance: subrouteData['distance'].toDouble(),
                     parcelId: subrouteData['parcel_id'],
+                    weight: generatedWeight,
                   );
                 },
               ),
@@ -796,6 +811,10 @@ List<Trip> getTrips() {
     ]
   }''';
   final jsonData = json.decode(jsonString);
+
+  // Generate a random real number between 0.5 and 5.0
+  var rng = Random();
+
   List<Trip> routes = List<Trip>.from(
     jsonData['routes'].map(
       (routeData) {
@@ -809,11 +828,14 @@ List<Trip> getTrips() {
                 phoneNumber: subrouteData['customer']['phone_number'],
               );
 
+              var generatedWeight = rng.nextDouble() * (5.0 - 0.5) + 0.5;
+
               return Subroute(
                 customer: customer,
                 arrivalTime: subrouteData['arrival_time'],
                 distance: subrouteData['distance'].toDouble(),
                 parcelId: subrouteData['parcel_id'],
+                weight: generatedWeight,
               );
             },
           ),
