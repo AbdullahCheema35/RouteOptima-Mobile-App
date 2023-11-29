@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "242352041374",
+    "project_id": "route-optima",
+    "storage_bucket": "route-optima.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:242352041374:android:508662331f063a24f9ba8f",
+        "android_client_info": {
+          "package_name": "com.example.route_optima_mobile_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAll7kkSkM3HkO0aCFz7ci2-1IQv82Om3M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
