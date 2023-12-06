@@ -8,9 +8,9 @@ import 'package:route_optima_mobile_app/models/location.dart';
 class EmergencyRequestDialog extends StatelessWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _descriptionController = TextEditingController();
-  String _selectedType = 'Puncture';
+  String _selectedType = 'Puncture'; // Default selected type
 
-  EmergencyRequestDialog({super.key}); // Default selected type
+  EmergencyRequestDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
