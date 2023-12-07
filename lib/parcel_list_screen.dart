@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(RouteOptimaApp());
+  runApp(const RouteOptimaApp());
 }
 
 class RouteOptimaApp extends StatelessWidget {
+  const RouteOptimaApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -16,28 +18,38 @@ class RouteOptimaApp extends StatelessWidget {
 
 class ParcelListPage extends StatelessWidget {
   // Example list of parcels
-  final List<Map<String, bool>> parcels = [
+  final List<Map<String, dynamic>> parcels = [
     {
       'delivered': true,
+      'time': '11:30 AM',
     },
     {
       'delivered': false,
+      'time': '12:00 PM',
     },
     {
       'delivered': true,
+      'time': '12:00 PM',
     },
     {
       'delivered': false,
+      'time': '12:00 PM',
     },
     // Add more parcels as needed
   ];
+
+  ParcelListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Parcel List'),
+        backgroundColor: Colors.blue.shade900,
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        title: const Text('Parcels List'),
       ),
+      backgroundColor: Colors.grey.shade200,
       body: ListView.builder(
         itemCount: parcels.length,
         itemBuilder: (BuildContext context, int index) {
@@ -47,11 +59,11 @@ class ParcelListPage extends StatelessWidget {
     );
   }
 
-  Widget buildParcelContainer(Map<String, bool> parcel, int idx) {
+  Widget buildParcelContainer(Map<String, dynamic> parcel, int idx) {
     return Container(
       height: 100, // Fixed height for each parcel container
       width: double.infinity, // Occupy all screen width
-      padding: EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
+      padding: const EdgeInsets.fromLTRB(8.0, 0, 8.0, 0),
       child: Row(
         children: [
           // Left column with circles and lines
@@ -78,24 +90,34 @@ class ParcelListPage extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(width: 12.0), // Add spacing between the columns
+          // const SizedBox(width: 12.0), // Add spacing between the columns
+          Container(
+            width: 40.0, // Width for the left column
+            child: const Text('12:00'),
+          ),
+
+          const SizedBox(width: 12.0), // Add spacing between the columns
 
           // Right column with parcel details
-          Expanded(
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Receiver: John Doe', // Replace with actual receiver name
+                  'John Doe', // Replace with actual receiver name
                   style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 4.0),
-                Text('Address: 123 Main St'), // Replace with actual address
-                SizedBox(height: 4.0),
-                Text('Delivery Time: 10:00 AM'), // Replace with actual time
+                SizedBox(height: 8.0),
+                Text(
+                    '123 Main St, City, Country'), // Replace with actual address
               ],
             ),
+          ),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.navigate_next_rounded),
+            color: Colors.blue.shade900,
           ),
         ],
       ),
