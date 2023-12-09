@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+// import 'package:flutter_svg/flutter_svg.dart';
 
 void main() {
   runApp(const RouteOptimaApp());
@@ -26,6 +27,8 @@ class ParcelDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         elevation: 0,
         leadingWidth: 100.0,
         leading: Row(
@@ -39,7 +42,7 @@ class ParcelDetailsScreen extends StatelessWidget {
               },
               icon: const FaIcon(
                 FontAwesomeIcons.angleLeft,
-                size: 20,
+                size: 24,
                 color: Colors.black,
               ),
             ),
@@ -53,8 +56,6 @@ class ParcelDetailsScreen extends StatelessWidget {
             ),
           ],
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         actions: <Widget>[
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -68,6 +69,7 @@ class ParcelDetailsScreen extends StatelessWidget {
           ),
         ],
       ),
+      backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -108,8 +110,6 @@ class ParcelDetailsScreen extends StatelessWidget {
               style: GoogleFonts.getFont('Roboto',
                   fontSize: 24.0, fontWeight: FontWeight.bold),
             ),
-
-            // const SizedBox(height: 24.0),
 
             // Address
             Padding(
@@ -253,6 +253,23 @@ class ParcelDetailsScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.grey[300], // Adjust color as needed
                 borderRadius: BorderRadius.circular(2.0),
+              ),
+            ),
+            Transform.rotate(
+              angle: 0.7,
+              child: Image.asset(
+                'assets/images/sand-clock.png', // Replace with your hourglass image path
+                width: 120, // Adjust the width of the image
+                height: 200, // Adjust the height of the image
+              ),
+            ),
+            Text(
+              'Awaiting Delivery',
+              style: GoogleFonts.getFont(
+                'Roboto',
+                fontWeight: FontWeight.w400,
+                fontSize: 18.0,
+                color: Colors.black45,
               ),
             ),
           ],
