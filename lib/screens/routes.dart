@@ -15,7 +15,11 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       // Also show the number of trips (length of the list)
-      appBar: AppBar(title: const Text('Current Assigned Trips')),
+      appBar: AppBar(
+        backgroundColor: Colors.blue.shade900,
+        centerTitle: true,
+        title: const Text('Current Assigned Trips'),
+      ),
       // body: ListView.builder(
       //   itemCount: trips.length,
       //   itemBuilder: (context, index) {
@@ -41,11 +45,11 @@ class HomeScreen extends ConsumerWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: <Widget>[
-            const DrawerHeader(
+            DrawerHeader(
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Colors.blue.shade900,
               ),
-              child: Text(
+              child: const Text(
                 'Route Optima',
                 style: TextStyle(
                   color: Colors.white,
@@ -192,7 +196,9 @@ Widget buildTripsBody(List<Trip> trips, BuildContext context) {
                                         child: Align(
                                           alignment: Alignment.center,
                                           child: Text(
-                                            trip.assignedDate.toString().substring(0, 10),
+                                            trip.assignedDate
+                                                .toString()
+                                                .substring(0, 10),
                                             style: const TextStyle(
                                               fontSize: 16,
                                               color: Colors.black,
