@@ -3,15 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:route_optima_mobile_app/models/trip.dart';
 import 'package:route_optima_mobile_app/screens/dashboard.dart';
 import 'package:route_optima_mobile_app/screens/subroutes_screen.dart';
-// import 'package:route_optima_mobile_app/screens/subroutes.dart';
-import 'package:route_optima_mobile_app/services/route_list_provider.dart';
+import 'package:route_optima_mobile_app/services/firestore_service.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final trips = ref.watch(routeListProvider);
+    final trips = ref.watch(tripsNotifierProvider);
 
     return Scaffold(
       // Also show the number of trips (length of the list)
@@ -224,7 +223,7 @@ Widget buildTripsBody(List<Trip> trips, BuildContext context) {
                                       0, 0, 0, 12),
                                   child: Text(
                                     // Extract just the time from the DateTime object
-                                    'Departure: ${trip.departureTime.toString().substring(11, 16)}',
+                                    'Departure: ${trip.departureTime}',
                                     textAlign: TextAlign.end,
                                     style: TextStyle(
                                       fontSize: 13,
@@ -394,7 +393,7 @@ Widget singleTripContainer(Trip trip, BuildContext context) {
                           const EdgeInsetsDirectional.fromSTEB(0, 0, 0, 12),
                       child: Text(
                         // Extract just the time from the DateTime object
-                        'Departure: ${trip.departureTime.toString().substring(11, 16)}',
+                        'Departure: ${trip.departureTime}',
                         textAlign: TextAlign.end,
                         style: TextStyle(
                           fontSize: 13,

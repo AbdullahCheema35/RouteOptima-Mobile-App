@@ -4,8 +4,8 @@ class Trip {
   final List<Subroute> subroutes;
   final String routeId;
   final DateTime assignedDate;
-  final DateTime departureTime;
-  final DateTime arrivalTime;
+  final String departureTime;
+  final String arrivalTime;
 
   Trip({
     required this.subroutes,
@@ -14,6 +14,16 @@ class Trip {
     required this.departureTime,
     required this.arrivalTime,
   });
+
+  factory Trip.initial(Map<String, dynamic> json) {
+    return Trip(
+      subroutes: [],
+      routeId: "",
+      assignedDate: DateTime.now(),
+      departureTime: json['startTime'],
+      arrivalTime: json['endTime'],
+    );
+  }
 
   factory Trip.fromRoute(Trip route) {
     return Trip(
@@ -25,17 +35,17 @@ class Trip {
     );
   }
 
-  factory Trip.fromJson(Map<String, dynamic> json) {
-    return Trip(
-      subroutes: List<Subroute>.from(
-        json['subroutes'].map(
-          (subroute) => Subroute.fromJson(subroute),
-        ),
-      ),
-      routeId: json['route_id'],
-      assignedDate: DateTime.parse(json['assigned_date']),
-      departureTime: DateTime.parse(json['departure_time']),
-      arrivalTime: DateTime.parse(json['arrival_time']),
-    );
-  }
+  // factory Trip.fromJson(Map<String, dynamic> json) {
+  //   return Trip(
+  //     subroutes: List<Subroute>.from(
+  //       json['subroutes'].map(
+  //         (subroute) => Subroute.fromJson(subroute),
+  //       ),
+  //     ),
+  //     routeId: json['route_id'],
+  //     assignedDate: DateTime.parse(json['assigned_date']),
+  //     departureTime: DateTime.parse(json['departure_time']),
+  //     arrivalTime: DateTime.parse(json['arrival_time']),
+  //   );
+  // }
 }

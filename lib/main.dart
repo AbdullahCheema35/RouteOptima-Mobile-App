@@ -1,10 +1,14 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:route_optima_mobile_app/screens/subroutes_screen.dart';
+import 'package:route_optima_mobile_app/firebase_options.dart';
 import 'package:route_optima_mobile_app/screens/routes.dart';
 
-void main() {
-  print("Starting!");
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(
     // For widgets to be able to read providers, we need to wrap the entire
     // application in a "ProviderScope" widget.
