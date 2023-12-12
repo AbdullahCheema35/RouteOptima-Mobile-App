@@ -1,24 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-// import 'package:flutter_svg/flutter_svg.dart';
-
-void main() {
-  runApp(const RouteOptimaApp());
-}
-
-class RouteOptimaApp extends StatelessWidget {
-  const RouteOptimaApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Route Optima',
-      debugShowCheckedModeBanner: false,
-      home: ParcelDetailsScreen(),
-    );
-  }
-}
 
 class ParcelDetailsScreen extends StatelessWidget {
   const ParcelDetailsScreen({super.key});
@@ -39,6 +21,7 @@ class ParcelDetailsScreen extends StatelessWidget {
             IconButton(
               onPressed: () {
                 // Implement the back functionality here
+                Navigator.pop(context);
               },
               icon: const FaIcon(
                 FontAwesomeIcons.angleLeft,
@@ -61,7 +44,7 @@ class ParcelDetailsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               'IN PROGRESS',
-              style: GoogleFonts.getFont('Roboto Mono',
+              style: GoogleFonts.getFont('Roboto',
                   color: Colors.yellow.shade800,
                   fontSize: 16.0,
                   fontWeight: FontWeight.bold),

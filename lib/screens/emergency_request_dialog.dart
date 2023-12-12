@@ -83,15 +83,24 @@ class EmergencyRequestDialog extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: <Widget>[
         TextButton(
+          style: ButtonStyle(
+            foregroundColor: MaterialStateProperty.all<Color>(Colors.black),
+          ),
           onPressed: () {
             Navigator.of(context).pop();
           },
           child: const Text('Cancel'),
         ),
         ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all<Color>(Colors.black),
+          ),
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              final requestFuture = _sendEmergencyRequest();
+              final descriptionText = _descriptionController.text;
+              final currentSelectedType = _selectedType;
+              final requestFuture =
+                  _sendEmergencyRequest(descriptionText, currentSelectedType);
               showRequestStatusDialog(context, requestFuture);
               _formKey.currentState!.reset();
             }
@@ -153,7 +162,8 @@ class EmergencyRequestDialog extends StatelessWidget {
   }
 
   // Function to send emergency report to Firestore
-  Future<void> _sendEmergencyRequest() async {
+  Future<void> _sendEmergencyRequest(
+      String descriptionText, String currentSelectedType) async {
     // Get current timestamp
     DateTime currentTime = DateTime.now();
 
@@ -191,8 +201,8 @@ class EmergencyRequestDialog extends StatelessWidget {
 
     // Prepare data to be added in the 'emergency_reports' collection
     Map<String, dynamic> emergencyData = {
-      'type': _selectedType,
-      'description': _descriptionController.text,
+      'type': currentSelectedType,
+      'description': descriptionText,
       'timestamp': currentTime,
       'locationRef': locationObj != null ? locationRef : null,
       'riderRef': riderRef,

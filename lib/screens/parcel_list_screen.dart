@@ -1,23 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-void main() {
-  runApp(const RouteOptimaApp());
-}
-
-class RouteOptimaApp extends StatelessWidget {
-  const RouteOptimaApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Route Optima',
-      debugShowCheckedModeBanner: false,
-      home: ParcelListPage(),
-    );
-  }
-}
+import 'package:route_optima_mobile_app/screens/parcel_details_screen.dart';
+import 'package:route_optima_mobile_app/screens/navigation.dart';
+import 'package:route_optima_mobile_app/services/line_painter.dart';
 
 class ParcelListPage extends StatelessWidget {
   // Example list of parcels
@@ -32,11 +18,11 @@ class ParcelListPage extends StatelessWidget {
     },
     {
       'delivered': true,
-      'time': '12:00 PM',
+      'time': '01:00 PM',
     },
     {
       'delivered': false,
-      'time': '12:00 PM',
+      'time': '02:00 PM',
     },
     // Add more parcels as needed
   ];
@@ -59,6 +45,7 @@ class ParcelListPage extends StatelessWidget {
             IconButton(
               onPressed: () {
                 // Implement the back functionality here
+                Navigator.pop(context);
               },
               icon: const FaIcon(
                 FontAwesomeIcons.angleLeft,
@@ -98,14 +85,29 @@ class ParcelListPage extends StatelessWidget {
         child: ListView.builder(
           itemCount: parcels.length,
           itemBuilder: (BuildContext context, int index) {
-            return buildParcelContainer(parcels[index], index);
+            return buildParcelContainer(context, parcels[index], index);
           },
         ),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // Implement functionality for Start Trip button
+          // Show Parcel Details
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const NavigationPage()),
+          );
+        },
+        label: Text('Start Trip'),
+        icon: FaIcon(FontAwesomeIcons.route),
+        backgroundColor: Colors.black, // Customize the background color
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  Widget buildParcelContainer(Map<String, dynamic> parcel, int idx) {
+  Widget buildParcelContainer(
+      BuildContext context, Map<String, dynamic> parcel, int idx) {
     return Container(
       height: 100, // Fixed height for each parcel container
       width: double.infinity, // Occupy all screen width
@@ -150,7 +152,7 @@ class ParcelListPage extends StatelessWidget {
           const SizedBox(width: 12.0), // Add spacing between the columns
 
           // Right column with parcel details
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
@@ -180,7 +182,14 @@ class ParcelListPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  // Show Parcel Details
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ParcelDetailsScreen()),
+                  );
+                },
                 icon: const Icon(Icons.navigate_next_rounded),
                 color: Colors.black,
               ),
@@ -189,33 +198,5 @@ class ParcelListPage extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class LinePainter extends CustomPainter {
-  final int length;
-  final int index;
-
-  LinePainter({required this.length, required this.index});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    double topOffset = 0.0;
-    double bottomOffset = index < length - 1 ? size.height : 0;
-
-    final Paint paint = Paint()
-      ..color = Colors.black // Change the color as desired
-      ..strokeWidth = 1.0;
-
-    canvas.drawLine(
-      Offset(size.width / 2, topOffset),
-      Offset(size.width / 2, bottomOffset),
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
   }
 }

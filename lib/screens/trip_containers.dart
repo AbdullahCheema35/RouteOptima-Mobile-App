@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:route_optima_mobile_app/models/temp_trip.dart';
+import 'package:route_optima_mobile_app/screens/parcel_list_screen.dart';
 
-Container getNextMonthContainer(List<Trip> trips, int index,
+Container getNextMonthContainer(
+    BuildContext context, List<Trip> trips, int index,
     {bool isAssignedList = true}) {
   return Container(
     width: double.infinity,
@@ -25,13 +27,15 @@ Container getNextMonthContainer(List<Trip> trips, int index,
           ),
         ),
         // Normal trip container
-        getNormalContainer(trips, index, false, isAssignedList: isAssignedList),
+        getNormalContainer(context, trips, index, false,
+            isAssignedList: isAssignedList),
       ],
     ),
   );
 }
 
-Container getNormalContainer(List<Trip> trips, int index, bool sameDate,
+Container getNormalContainer(
+    BuildContext context, List<Trip> trips, int index, bool sameDate,
     {bool isAssignedList = true}) {
   return Container(
     width: double.infinity,
@@ -140,7 +144,14 @@ Container getNormalContainer(List<Trip> trips, int index, bool sameDate,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          // Move to Parcel List screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ParcelListPage()),
+                          );
+                        },
                         icon: Icon(
                           Icons.navigate_next,
                           color: index == 0 && isAssignedList

@@ -2,53 +2,9 @@
 import 'package:flutter/material.dart';
 import 'package:route_optima_mobile_app/charts/distance_barchart.dart';
 import 'package:route_optima_mobile_app/charts/ontime_piechart.dart';
-import 'package:route_optima_mobile_app/screens/routes.dart';
+import 'package:route_optima_mobile_app/screens/drawer_widget.dart';
 import 'package:route_optima_mobile_app/services/stat_generator.dart';
 import 'package:route_optima_mobile_app/charts/working_hours_barchart.dart';
-// import 'package:route_optima_mobile_app/charts/raw_bar_chart.dart';
-
-// class DashboardPage extends StatelessWidget {
-//   const DashboardPage({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Dashboard'),
-//       ),
-//       body: const SingleChildScrollView(
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.stretch,
-//           children: [
-//             // Pie Chart
-//             Padding(
-//               padding: EdgeInsets.all(8.0),
-//               child: Card(
-//                 child: PieChartWidget(),
-//               ),
-//             ),
-
-//             // Bar Chart 1
-//             Padding(
-//               padding: EdgeInsets.all(8.0),
-//               child: Card(
-//                 child: BarChartSample3(),
-//               ),
-//             ),
-
-//             // Bar Chart 2
-//             Padding(
-//               padding: EdgeInsets.all(8.0),
-//               child: Card(
-//                 child: BarChartSample3(),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -58,6 +14,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  final _drawerTileIndex = 1;
   bool showMonth = true; // Default value for toggling between month and year
   Map<String, dynamic> currentStatsData =
       monthlyStats; // Default value for stats data (monthly)
@@ -74,55 +31,17 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
-      ),
-      //Drawer
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Route Optima',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              title: const Text('View Trips'),
-              onTap: () {
-                // Add navigation logic here
-                Navigator.pop(context); // Close the drawer
-                // Navigate to View Trips screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                );
-              },
-            ),
-            ListTile(
-              title: const Text('Dashboard'),
-              onTap: () {
-                // Close the drawer
-                Navigator.pop(context);
-                // // Add navigation logic here
-                // Navigator.pop(context); // Close the drawer
-                // // Navigate to Dashboard screen
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //       builder: (context) => const DashboardPage()),
-                // );
-              },
-            ),
-          ],
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        title: const Text(
+          'Dashboard',
+          style: TextStyle(fontSize: 24.0),
         ),
       ),
+      //Drawer
+      drawer: routeOptimaDrawerWidget(context, _drawerTileIndex),
+      //body
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -222,23 +141,6 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
     );
   }
-
-  // Widget _buildToggleSwitch() {
-  //   return Switch(
-  //     value: showMonth,
-  //     onChanged: (value) {
-  //       setState(() {
-  //         showMonth = value;
-  //         currentStatsData =
-  //             showMonth ? monthlyStats : yearlyStats; // Toggle stats data
-  //       });
-  //     },
-  //     activeColor: Colors.blue, // Change color as needed
-  //     inactiveThumbColor: Colors.grey, // Change color as needed
-  //     inactiveTrackColor: Colors.grey[300], // Change color as needed
-  //     activeTrackColor: Colors.blue[200], // Change color as needed
-  //   );
-  // }
 
   Widget _buildToggleSwitch() {
     return Switch(
