@@ -25,15 +25,13 @@ class NavigationPage extends StatelessWidget {
                 Navigator.pop(context);
               },
               icon: const FaIcon(
-                FontAwesomeIcons.angleLeft,
-                size: 24,
+                FontAwesomeIcons.chevronLeft,
                 color: Colors.black,
               ),
             ),
             Text(
               'Back',
-              style: GoogleFonts.getFont(
-                'Roboto',
+              style: GoogleFonts.roboto(
                 fontSize: 20.0,
                 fontWeight: FontWeight.w400,
               ),
@@ -42,8 +40,11 @@ class NavigationPage extends StatelessWidget {
         ),
       ),
       backgroundColor: Colors.white,
-      body: const Center(
-        child: Text('Navigation content goes here'),
+      body: Center(
+        child: Text(
+          'Navigation content goes here',
+          style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+        ),
       ),
       floatingActionButton: const ReportEmergencyButton(),
     );
@@ -67,7 +68,9 @@ class ReportEmergencyButton extends StatelessWidget {
         );
       },
       tooltip: 'Report Emergency',
-      child: const Icon(Icons.report_problem),
+      child: const FaIcon(
+        FontAwesomeIcons.triangleExclamation,
+      ),
     );
   }
 }

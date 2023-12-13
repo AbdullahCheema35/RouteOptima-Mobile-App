@@ -9,16 +9,16 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  //
+  // Run the app now
   runApp(
     const ProviderScope(
-      child: MyApp(),
+      child: RouteOptimaApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class RouteOptimaApp extends StatelessWidget {
+  const RouteOptimaApp({super.key});
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {

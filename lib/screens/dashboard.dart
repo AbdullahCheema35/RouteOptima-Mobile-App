@@ -36,7 +36,10 @@ class _DashboardPageState extends State<DashboardPage> {
         elevation: 0,
         title: const Text(
           'Dashboard',
-          style: TextStyle(fontSize: 24.0),
+          style: TextStyle(
+            fontSize: 24.0,
+            fontFamily: 'Roboto', // Apply 'Roboto' font
+          ),
         ),
       ),
       //Drawer
@@ -76,11 +79,12 @@ class _DashboardPageState extends State<DashboardPage> {
               child: Card(
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'Average Distance Travelled (km)', // Title text
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'Roboto', // Apply 'Roboto' font
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -98,11 +102,12 @@ class _DashboardPageState extends State<DashboardPage> {
               child: Card(
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'Average Working Hours', // Title text
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'Roboto', // Apply 'Roboto' font
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -120,11 +125,12 @@ class _DashboardPageState extends State<DashboardPage> {
               child: Card(
                 child: Column(
                   children: [
-                    const Text(
+                    Text(
                       'Percentage of On-Time Deliveries', // Title text
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'Roboto', // Apply 'Roboto' font
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -166,6 +172,7 @@ class _DashboardPageState extends State<DashboardPage> {
       style: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.bold,
+        fontFamily: 'Roboto', // Apply 'Roboto' font
       ),
     );
   }

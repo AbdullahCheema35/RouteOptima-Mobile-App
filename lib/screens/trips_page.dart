@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:route_optima_mobile_app/models/temp_trip.dart';
 import 'package:route_optima_mobile_app/screens/assigned_trips.dart';
 import 'package:route_optima_mobile_app/screens/completed_trips.dart';
 import 'package:route_optima_mobile_app/screens/drawer_widget.dart';
-import 'package:route_optima_mobile_app/screens/trip_containers.dart';
 
 class TripsPage extends StatefulWidget {
   @override
@@ -17,7 +15,6 @@ class _TripsPageState extends State<TripsPage> {
   final _drawerTileIndex = 0;
 
   final List<Widget> _tabs = [
-    // NoTripsAssigned(),
     AssignedTrips(),
     CompletedTripsScreen(),
   ];
@@ -29,9 +26,10 @@ class _TripsPageState extends State<TripsPage> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
-        title: const Text(
-          'Trips',
-          style: TextStyle(fontSize: 24.0),
+        title: Text(
+          'View Trips',
+          style:
+              GoogleFonts.roboto(fontSize: 24.0, fontWeight: FontWeight.w600),
         ),
       ),
       drawer: routeOptimaDrawerWidget(context, _drawerTileIndex),
@@ -60,12 +58,10 @@ class _TripsPageState extends State<TripsPage> {
               selectedItemColor: Colors.black,
               unselectedItemColor: Colors.grey,
               backgroundColor: Colors.white,
-              selectedLabelStyle: GoogleFonts.getFont(
-                'Roboto',
+              selectedLabelStyle: GoogleFonts.roboto(
                 fontSize: 16.0,
               ),
-              unselectedLabelStyle: GoogleFonts.getFont(
-                'Roboto',
+              unselectedLabelStyle: GoogleFonts.roboto(
                 fontSize: 14.0,
               ),
               currentIndex: _currentIndex,

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:route_optima_mobile_app/screens/dashboard.dart';
 import 'package:route_optima_mobile_app/screens/trips_page.dart';
-import 'package:route_optima_mobile_app/test_main.dart';
 
 Widget routeOptimaDrawerWidget(BuildContext context, int tileIndex) {
   // tileIndex: 0 -> ViewTrips
@@ -20,29 +21,31 @@ Widget routeOptimaDrawerWidget(BuildContext context, int tileIndex) {
               ],
             ),
           ),
-          accountName: const Text('Irfan Khan'),
-          accountEmail: const Text('IrfanKhan123@gmail.com'),
+          accountName: Text(
+            'Irfan Khan',
+            style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+          ),
+          accountEmail: Text(
+            'IrfanKhan123@gmail.com',
+            style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+          ),
           currentAccountPicture: const CircleAvatar(
             backgroundImage: AssetImage(
                 'assets/images/uifaces-popular-image (1).jpg'), // Replace with user's profile picture
           ),
-          // otherAccountsPictures: [
-          //   CircleAvatar(
-          //     child: Text('JD'),
-          //     backgroundColor: Colors.white,
-          //   ),
-          //   // Add more profile pictures if needed
-          // ],
           margin: EdgeInsets.zero,
         ),
         ListTile(
-          leading: const Icon(Icons.bike_scooter),
+          leading: const FaIcon(FontAwesomeIcons.motorcycle),
           iconColor: Colors.black,
-          title: const Text('View Trips', style: TextStyle(fontSize: 16.0)),
+          title: Text(
+            'View Trips',
+            style: GoogleFonts.roboto(
+                fontSize: 16.0), // Apply GoogleFont('Roboto')
+          ),
           selected: tileIndex == 0,
           onTap: () {
-            // Close the drawer
-            Navigator.pop(context);
+            Navigator.pop(context); // Close the drawer
             // Check if we're already on ViewTrips page
             if (tileIndex != 0) {
               Navigator.push(
@@ -53,9 +56,13 @@ Widget routeOptimaDrawerWidget(BuildContext context, int tileIndex) {
           },
         ),
         ListTile(
-          leading: const Icon(Icons.dashboard),
+          leading: const FaIcon(FontAwesomeIcons.chartLine),
           iconColor: Colors.black,
-          title: const Text('Dashboard', style: TextStyle(fontSize: 16.0)),
+          title: Text(
+            'Dashboard',
+            style: GoogleFonts.roboto(
+                fontSize: 16.0), // Apply GoogleFont('Roboto')
+          ),
           selected: tileIndex == 1,
           onTap: () {
             Navigator.pop(context); // Close the drawer
@@ -70,9 +77,13 @@ Widget routeOptimaDrawerWidget(BuildContext context, int tileIndex) {
         ),
         const Divider(),
         ListTile(
-          leading: const Icon(Icons.settings),
+          leading: const FaIcon(FontAwesomeIcons.gear),
           iconColor: Colors.black,
-          title: const Text('Settings', style: TextStyle(fontSize: 16.0)),
+          title: Text(
+            'Settings',
+            style: GoogleFonts.roboto(
+                fontSize: 16.0), // Apply GoogleFont('Roboto')
+          ),
           selected: tileIndex == 2,
         ),
         // Add more ListTiles for other drawer options

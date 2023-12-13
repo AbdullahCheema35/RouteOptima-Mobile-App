@@ -8,6 +8,10 @@ class LinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (index == -1) {
+      return;
+    }
+
     double topOffset = 0.0;
     double bottomOffset = index < length - 1 ? size.height : 0;
 

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:route_optima_mobile_app/models/temp_trip.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:route_optima_mobile_app/conversion/time.dart';
+import 'package:route_optima_mobile_app/conversion/week_day.dart';
+import 'package:route_optima_mobile_app/models/trip.dart';
 import 'package:route_optima_mobile_app/screens/parcel_list_screen.dart';
+import 'package:route_optima_mobile_app/conversion/month.dart';
 
 Container getNextMonthContainer(
     BuildContext context, List<Trip> trips, int index,
@@ -18,11 +23,12 @@ Container getNextMonthContainer(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
             child: Text(
-              '${trips[index].month} ${trips[index].year}',
-              style: TextStyle(
-                  color: Colors.grey,
-                  fontSize: 32.0,
-                  fontWeight: FontWeight.bold),
+              '${getShortMonthName(trips[index].month)}. ${trips[index].year}',
+              style: GoogleFonts.roboto(
+                color: Colors.grey,
+                fontSize: 32.0,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -55,8 +61,8 @@ Container getNormalContainer(
                     Padding(
                       padding: const EdgeInsets.fromLTRB(10.0, 8.0, 0.0, 0.0),
                       child: Text(
-                        trips[index].day,
-                        style: const TextStyle(
+                        getShortWeekDay(trips[index].day),
+                        style: GoogleFonts.roboto(
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
                           fontSize: 20.0,
@@ -66,8 +72,8 @@ Container getNormalContainer(
                     Padding(
                       padding: const EdgeInsets.fromLTRB(10.0, 8.0, 0.0, 0.0),
                       child: Text(
-                        trips[index].date,
-                        style: const TextStyle(
+                        trips[index].date.toString(),
+                        style: GoogleFonts.roboto(
                           fontWeight: FontWeight.bold,
                           color: Colors.grey,
                           fontSize: 20.0,
@@ -103,8 +109,8 @@ Container getNormalContainer(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${trips[index].startTime} - ${trips[index].endTime}',
-                        style: TextStyle(
+                        '${extractTime(trips[index].startTime)} - ${extractTime(trips[index].endTime)}',
+                        style: GoogleFonts.roboto(
                           fontWeight: FontWeight.bold,
                           fontSize: 20.0,
                           color: index == 0 && isAssignedList
@@ -117,24 +123,25 @@ Container getNormalContainer(
                       ),
                       Row(
                         children: [
-                          // Location Icon
-                          Icon(
-                            Icons.location_pin,
+                          // FontAwesome Icon replaced here
+                          FaIcon(
+                            FontAwesomeIcons.locationDot,
                             color: index == 0 && isAssignedList
                                 ? Colors.white
                                 : Colors.grey,
                           ),
                           const SizedBox(
-                            width: 4.0,
+                            width: 8.0,
                           ),
                           Text(
-                            '3 Parcels',
-                            style: TextStyle(
-                                color: index == 0 && isAssignedList
-                                    ? Colors.white
-                                    : Colors.grey,
-                                fontSize: 16.0,
-                                fontWeight: FontWeight.w500),
+                            '${trips[index].parcelRefs.length} Parcels',
+                            style: GoogleFonts.roboto(
+                              color: index == 0 && isAssignedList
+                                  ? Colors.white
+                                  : Colors.grey,
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.w500,
+                            ),
                           )
                         ],
                       ),
@@ -149,11 +156,15 @@ Container getNormalContainer(
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => ParcelListPage()),
+                              builder: (context) => ParcelListPage(
+                                parcelRefs: trips[index].parcelRefs,
+                              ),
+                            ),
                           );
                         },
-                        icon: Icon(
-                          Icons.navigate_next,
+                        // FontAwesome Icon replaced here
+                        icon: FaIcon(
+                          FontAwesomeIcons.chevronRight,
                           color: index == 0 && isAssignedList
                               ? Colors.white
                               : Colors.black,

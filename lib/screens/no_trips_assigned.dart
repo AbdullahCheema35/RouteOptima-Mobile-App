@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:route_optima_mobile_app/models/temp_trip.dart';
-import 'package:route_optima_mobile_app/screens/drawer_widget.dart';
-import 'package:route_optima_mobile_app/screens/trip_containers.dart';
 
 class NoTripsAssigned extends StatelessWidget {
   @override
@@ -42,8 +39,7 @@ class NoTripsAssigned extends StatelessWidget {
           children: [
             Text(
               'No Trips',
-              style: GoogleFonts.getFont(
-                'Roboto',
+              style: GoogleFonts.roboto(
                 fontSize: 28.0,
                 fontWeight: FontWeight.w700,
               ),
@@ -51,8 +47,7 @@ class NoTripsAssigned extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               'You will be Notified for New Trips',
-              style: GoogleFonts.getFont(
-                'Roboto',
+              style: GoogleFonts.roboto(
                 fontSize: 18.0,
                 color: Colors.grey,
               ),

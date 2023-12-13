@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:route_optima_mobile_app/conversion/time.dart';
+import 'package:route_optima_mobile_app/models/parcel.dart';
 
 class ParcelDetailsScreen extends StatelessWidget {
-  const ParcelDetailsScreen({super.key});
+  const ParcelDetailsScreen(this.parcel, {super.key});
+
+  final Parcel parcel;
 
   @override
   Widget build(BuildContext context) {
@@ -24,15 +28,13 @@ class ParcelDetailsScreen extends StatelessWidget {
                 Navigator.pop(context);
               },
               icon: const FaIcon(
-                FontAwesomeIcons.angleLeft,
-                size: 24,
+                FontAwesomeIcons.chevronLeft,
                 color: Colors.black,
               ),
             ),
             Text(
               'Back',
-              style: GoogleFonts.getFont(
-                'Roboto',
+              style: GoogleFonts.roboto(
                 fontSize: 20.0,
                 fontWeight: FontWeight.w400,
               ),
@@ -43,11 +45,20 @@ class ParcelDetailsScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'IN PROGRESS',
-              style: GoogleFonts.getFont('Roboto',
-                  color: Colors.yellow.shade800,
-                  fontSize: 16.0,
-                  fontWeight: FontWeight.bold),
+              parcel.status == 'pending'
+                  ? 'IN PROGRESS'
+                  : parcel.status == 'delivered'
+                      ? "DELIVERED"
+                      : "UNAVAILABLE",
+              style: GoogleFonts.roboto(
+                color: parcel.status == 'pending'
+                    ? Colors.yellow.shade800
+                    : parcel.status == 'delivered'
+                        ? Colors.green
+                        : Colors.red,
+                fontSize: 16.0,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -58,24 +69,6 @@ class ParcelDetailsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // // Show status of the parcel
-            // const Row(
-            //   mainAxisAlignment: MainAxisAlignment.end,
-            //   children: [
-            //     Text(
-            //       'IN PROGRESS',
-            //       style: TextStyle(
-            //           fontSize: 18.0,
-            //           color: Colors.amber,
-            //           fontWeight: FontWeight.bold),
-            //     ),
-            //   ],
-            // ),
-
-            // const SizedBox(
-            //   height: 32.0,
-            // ),
-
             const CircleAvatar(
               radius: 50, // Adjust the size of the circular avatar
               backgroundImage: AssetImage(
@@ -89,56 +82,26 @@ class ParcelDetailsScreen extends StatelessWidget {
 
             // Name of the client
             Text(
-              'Muhammad Abdullah',
-              style: GoogleFonts.getFont('Roboto',
-                  fontSize: 24.0, fontWeight: FontWeight.bold),
+              parcel.name,
+              style: GoogleFonts.roboto(
+                fontSize: 24.0,
+                fontWeight: FontWeight.bold,
+              ),
             ),
 
             // Address
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                '123 Main St, City, Country',
-                style: GoogleFonts.getFont('Roboto',
-                    fontSize: 16.0, fontWeight: FontWeight.bold),
+                parcel.address,
+                style: GoogleFonts.roboto(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
 
             const SizedBox(height: 24.0),
-
-            // const Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     Icon(
-            //       Icons.access_time_rounded,
-            //       size: 40.0,
-            //     ),
-            //     SizedBox(width: 16.0),
-            //     Text(
-            //       '12:00 PM',
-            //       style: TextStyle(fontSize: 16.0),
-            //     ),
-            //   ],
-            // ),
-
-            // const SizedBox(height: 16.0),
-
-            // const Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     Icon(
-            //       Icons.receipt_outlined,
-            //       size: 40.0,
-            //     ),
-            //     SizedBox(width: 16.0),
-            //     Text(
-            //       'qeqeqw456',
-            //       style: TextStyle(fontSize: 16.0),
-            //     ),
-            //   ],
-            // ),
-
-            // const SizedBox(height: 24.0),
 
             // Action buttons
             Row(
@@ -168,7 +131,11 @@ class ParcelDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8.0),
-                    const Text('LOCATION'),
+                    const Text(
+                      'LOCATION',
+                      style: TextStyle(
+                          fontFamily: 'Roboto'), // Apply GoogleFont('Roboto')
+                    ),
                   ],
                 ),
 
@@ -196,7 +163,11 @@ class ParcelDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8.0),
-                    const Text('CALL'),
+                    const Text(
+                      'CALL',
+                      style: TextStyle(
+                          fontFamily: 'Roboto'), // Apply GoogleFont('Roboto')
+                    ),
                   ],
                 ),
 
@@ -218,13 +189,17 @@ class ParcelDetailsScreen extends StatelessWidget {
                         ),
                       ),
                       child: const FaIcon(
-                        FontAwesomeIcons.solidMessage,
+                        FontAwesomeIcons.solidEnvelope,
                         size: 20,
                         color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8.0),
-                    const Text('SMS'),
+                    const Text(
+                      'SMS',
+                      style: TextStyle(
+                          fontFamily: 'Roboto'), // Apply GoogleFont('Roboto')
+                    ),
                   ],
                 ),
               ],
@@ -238,26 +213,83 @@ class ParcelDetailsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2.0),
               ),
             ),
-            Transform.rotate(
-              angle: 0.7,
-              child: Image.asset(
-                'assets/images/sand-clock.png', // Replace with your hourglass image path
-                width: 120, // Adjust the width of the image
-                height: 200, // Adjust the height of the image
-              ),
-            ),
-            Text(
-              'Awaiting Delivery',
-              style: GoogleFonts.getFont(
-                'Roboto',
-                fontWeight: FontWeight.w400,
-                fontSize: 18.0,
-                color: Colors.black45,
-              ),
-            ),
+            (parcel.status == 'pending' || parcel.status == 'unavailable')
+                ? pendingOrUnavailable()
+                : receivingDetails(parcel),
           ],
         ),
       ),
     );
   }
+}
+
+Widget pendingOrUnavailable() {
+  return Column(
+    children: [
+      Transform.rotate(
+        angle: 0.7,
+        child: Image.asset(
+          'assets/images/sand-clock.png', // Replace with your hourglass image path
+          width: 120, // Adjust the width of the image
+          height: 200, // Adjust the height of the image
+        ),
+      ),
+      Text(
+        'Awaiting Delivery',
+        style: GoogleFonts.roboto(
+          fontWeight: FontWeight.w400,
+          fontSize: 18.0,
+          color: Colors.black45,
+        ),
+      ),
+    ],
+  );
+}
+
+Widget receivingDetails(Parcel parcel) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    mainAxisAlignment: MainAxisAlignment.center,
+    children: [
+      Row(
+        children: [
+          Text(
+            'Receiving Details:',
+            style: GoogleFonts.roboto(
+              fontSize: 20.0,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+      SizedBox(
+        height: 16.0,
+      ),
+      Row(
+        children: [
+          Text(
+            'Received By: ${parcel.receivedBy}',
+            style: GoogleFonts.roboto(
+              fontWeight: FontWeight.w400,
+              fontSize: 18.0,
+            ),
+          ),
+        ],
+      ),
+      SizedBox(
+        height: 12.0,
+      ),
+      Row(
+        children: [
+          Text(
+            'Delivered at: ${extractTime(parcel.deliveredTime)}',
+            style: GoogleFonts.roboto(
+              fontWeight: FontWeight.w400,
+              fontSize: 18.0,
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
 }

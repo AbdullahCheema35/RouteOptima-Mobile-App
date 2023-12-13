@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:route_optima_mobile_app/services/current_location.dart';
 import 'package:route_optima_mobile_app/models/location.dart';
 
@@ -15,7 +17,10 @@ class EmergencyRequestDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Report Emergency'),
+      title: Text(
+        'Report Emergency',
+        style: GoogleFonts.roboto(),
+      ),
       content: _buildDialogContent(context),
     );
   }
@@ -37,7 +42,7 @@ class EmergencyRequestDialog extends StatelessWidget {
     );
   }
 
-  // Widget for dropdown to select emergency type
+// Widget for dropdown to select emergency type
   Widget _buildTypeDropdown() {
     return DropdownButtonFormField<String>(
       value: _selectedType,
@@ -45,7 +50,10 @@ class EmergencyRequestDialog extends StatelessWidget {
           .map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
-          child: Text(value),
+          child: Text(
+            value,
+            style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+          ),
         );
       }).toList(),
       onChanged: (String? newValue) {
@@ -60,7 +68,7 @@ class EmergencyRequestDialog extends StatelessWidget {
     );
   }
 
-  // Widget for description text field
+// Widget for description text field
   Widget _buildDescriptionTextField() {
     return TextFormField(
       controller: _descriptionController,
@@ -74,10 +82,11 @@ class EmergencyRequestDialog extends StatelessWidget {
         }
         return null;
       },
+      style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
     );
   }
 
-  // Widget for dialog action buttons (Send and Cancel)
+// Widget for dialog action buttons (Send and Cancel)
   Widget _buildDialogButtons(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -89,7 +98,11 @@ class EmergencyRequestDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text('Cancel'),
+          child: const Text(
+            'Cancel',
+            style:
+                TextStyle(fontFamily: 'Roboto'), // Apply GoogleFont('Roboto')
+          ),
         ),
         ElevatedButton(
           style: ButtonStyle(
@@ -105,7 +118,11 @@ class EmergencyRequestDialog extends StatelessWidget {
               _formKey.currentState!.reset();
             }
           },
-          child: const Text('Send'),
+          child: const Text(
+            'Send',
+            style:
+                TextStyle(fontFamily: 'Roboto'), // Apply GoogleFont('Roboto')
+          ),
         ),
       ],
     );
@@ -116,42 +133,55 @@ class EmergencyRequestDialog extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Sending Emergency Request'),
+          title: Text(
+            'Sending Emergency Request',
+            style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+          ),
           content: FutureBuilder(
             future: futureObj,
             builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                // return const CircularProgressIndicator(
-                //   strokeWidth: 4, // Adjust the thickness of the circle
-                // );
-                return const Column(
+                return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       width: 50,
                       height: 50,
                       child: CircularProgressIndicator(
                         strokeWidth: 4, // Adjust the thickness of the circle
                       ),
                     ),
-                    SizedBox(height: 10),
-                    Text('Please wait...'),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Please wait...',
+                      style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+                    ),
                   ],
                 );
               } else if (snapshot.connectionState == ConnectionState.done &&
                   !snapshot.hasError) {
-                return const Column(
+                return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.check_circle, color: Colors.green, size: 50),
-                    SizedBox(height: 10),
-                    Text('Emergency Request Sent Successfully'),
+                    const FaIcon(
+                      FontAwesomeIcons.circleCheck,
+                      color: Colors.green,
+                      size: 50,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Emergency Request Sent Successfully',
+                      style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+                    ),
                   ],
                 );
               } else {
                 return Text(
                   'Error: ${snapshot.error}',
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(
+                    color: Colors.red,
+                    fontFamily: 'Roboto', // Apply GoogleFont('Roboto')
+                  ),
                 );
               }
             },
