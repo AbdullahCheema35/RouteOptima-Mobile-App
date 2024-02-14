@@ -31,9 +31,11 @@ class _MapPageState extends State<MapPage> {
     super.initState();
     getLocationUpdates().then(
       (_) => {
-        getPolylinePoints().then((coordinates) => {
-              generatePolyLineFromPoints(coordinates),
-            }),
+        getPolylinePoints().then((coordinates) {
+          // Generate polyline and store in Firestore
+          generatePolyLineFromPoints(coordinates);
+          updateFirestorePolyline(coordinates);
+        }),
       },
     );
   }
@@ -117,19 +119,35 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  // New Function that I have added for updation of points
   Future<void> updateFirestoreLocation(LatLng currentLocation) async {
-    // Access Firestore instance
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-    // Reference to the Firestore collection
     CollectionReference locations = firestore.collection('riderLocation');
 
-    // Add or update the document with the latest location
-    locations.doc('46ACIEbnlM4N8dGez77b').set({
+    // Specify the document ID you want to update
+    DocumentReference documentRef = locations.doc('46ACIEbnlM4N8dGez77b');
+
+    // Use the update method to only update the specified fields
+    documentRef.update({
       'lat': currentLocation.latitude,
       'long': currentLocation.longitude,
-      // 'timestamp': FieldValue.serverTimestamp(), // Optional timestamp field
+    });
+  }
+
+  Future<void> updateFirestorePolyline(List<LatLng> polylineCoordinates) async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    CollectionReference polylines = firestore.collection('riderLocation');
+
+    // Specify the document ID you want to update
+    DocumentReference documentRef = polylines.doc('46ACIEbnlM4N8dGez77b');
+
+    // Update Firestore with polyline coordinates
+    documentRef.update({
+      'polyline': polylineCoordinates
+          .map((latLng) => {
+                'lat': latLng.latitude,
+                'long': latLng.longitude,
+              })
+          .toList(),
     });
   }
 
