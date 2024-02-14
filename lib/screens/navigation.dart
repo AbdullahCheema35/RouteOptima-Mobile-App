@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:route_optima_mobile_app/screens/emergency_request_dialog.dart';
+import 'package:route_optima_mobile_app/gmapPages/map_page.dart';
 
 class NavigationPage extends StatelessWidget {
   const NavigationPage({super.key});
@@ -40,12 +41,7 @@ class NavigationPage extends StatelessWidget {
         ),
       ),
       backgroundColor: Colors.white,
-      body: Center(
-        child: Text(
-          'Navigation content goes here',
-          style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
-        ),
-      ),
+      body: const MapPage(),
       floatingActionButton: const ReportEmergencyButton(),
     );
   }
