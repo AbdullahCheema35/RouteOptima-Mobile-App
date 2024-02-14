@@ -67,21 +67,6 @@ class ParcelListPage extends StatelessWidget {
             ),
           ],
         ),
-        actions: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: Text(
-                '3 OF 8 COMPLETED',
-                style: GoogleFonts.roboto(
-                  color: const Color.fromRGBO(0, 0, 0, 0.867),
-                  fontSize: 14.0,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
       backgroundColor: Colors.white,
       body: FutureBuilder<List<Parcel>>(
