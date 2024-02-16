@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:route_optima_mobile_app/gmapPages/proximity_button.dart';
 import 'package:route_optima_mobile_app/googleMapConsts.dart';
 import 'package:location/location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -27,10 +28,16 @@ class _MapPageState extends State<MapPage> {
   Map<PolylineId, Polyline> polylines = {};
 
   // Additional attributes for timer and last uploaded location and Duration of the timer
-  LatLng? _lastUploadedLocation; // Track the last uploaded location
+  // LatLng? _lastUploadedLocation; // Track the last uploaded location
   late Timer _locationUpdateTimer; // Timer for periodic updates
   static const int locationUploadInterval =
       10; // Duration of the timer in seconds
+
+  // Attribute to conditionally reder the proximity button
+  bool _inProximity = false;
+
+  // Proximity radius threshold in meters
+  static const double proximityThreshold = 500.0;
 
   @override
   void initState() {
@@ -69,40 +76,46 @@ class _MapPageState extends State<MapPage> {
         ? const Center(
             child: Text("Loading..."),
           )
-        : GoogleMap(
-            onMapCreated: ((GoogleMapController controller) =>
-                _mapController.complete(controller)),
-            initialCameraPosition: const CameraPosition(
-              target: _pGooglePlex,
-              zoom: 13,
-            ),
-            markers: {
-              Marker(
-                markerId: const MarkerId("_currentLocation"),
-                icon: BitmapDescriptor.defaultMarker,
-                position: _currentP!,
+        : Stack(
+            children: [
+              GoogleMap(
+                onMapCreated: ((GoogleMapController controller) =>
+                    _mapController.complete(controller)),
+                initialCameraPosition: const CameraPosition(
+                  target: _pGooglePlex,
+                  zoom: 13,
+                ),
+                markers: {
+                  Marker(
+                    markerId: const MarkerId("_currentLocation"),
+                    icon: BitmapDescriptor.defaultMarker,
+                    position: _currentP!,
+                  ),
+                  const Marker(
+                      markerId: MarkerId("_sourceLocation"),
+                      icon: BitmapDescriptor.defaultMarker,
+                      position: _pGooglePlex),
+                  const Marker(
+                      markerId: MarkerId("_destionationLocation"),
+                      icon: BitmapDescriptor.defaultMarker,
+                      position: _pApplePark)
+                },
+                polylines: Set<Polyline>.of(polylines.values),
               ),
-              const Marker(
-                  markerId: MarkerId("_sourceLocation"),
-                  icon: BitmapDescriptor.defaultMarker,
-                  position: _pGooglePlex),
-              const Marker(
-                  markerId: MarkerId("_destionationLocation"),
-                  icon: BitmapDescriptor.defaultMarker,
-                  position: _pApplePark)
-            },
-            polylines: Set<Polyline>.of(polylines.values),
+              // Render the proximity button if the rider is in proximity
+              if (_inProximity) renderProximityButton(),
+            ],
           );
   }
 
   Future<void> _cameraToPosition(LatLng pos) async {
     final GoogleMapController controller = await _mapController.future;
-    CameraPosition _newCameraPosition = CameraPosition(
+    CameraPosition newCameraPosition = CameraPosition(
       target: pos,
       zoom: 13,
     );
     await controller.animateCamera(
-      CameraUpdate.newCameraPosition(_newCameraPosition),
+      CameraUpdate.newCameraPosition(newCameraPosition),
     );
   }
 
@@ -129,10 +142,21 @@ class _MapPageState extends State<MapPage> {
         .listen((LocationData currentLocation) {
       if (currentLocation.latitude != null &&
           currentLocation.longitude != null) {
+        final newP =
+            LatLng(currentLocation.latitude!, currentLocation.longitude!);
+
+        // Calculate the distance between the current location and the destination
+        double distance = calculateDistance(
+          newP,
+          _pApplePark,
+        );
+
         setState(() {
-          _currentP =
-              LatLng(currentLocation.latitude!, currentLocation.longitude!);
+          _currentP = newP;
           _cameraToPosition(_currentP!);
+
+          // Check if the rider is in proximity
+          _inProximity = distance <= proximityThreshold;
         });
       }
     });
