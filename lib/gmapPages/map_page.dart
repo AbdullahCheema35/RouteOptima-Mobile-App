@@ -26,9 +26,24 @@ class _MapPageState extends State<MapPage> {
 
   Map<PolylineId, Polyline> polylines = {};
 
+  // Additional attributes for timer and last uploaded location and Duration of the timer
+  LatLng? _lastUploadedLocation; // Track the last uploaded location
+  late Timer _locationUpdateTimer; // Timer for periodic updates
+  static const int locationUploadInterval =
+      10; // Duration of the timer in seconds
+
   @override
   void initState() {
     super.initState();
+
+    // Set up a timer to update the location every timerDuration seconds
+    _locationUpdateTimer = Timer.periodic(
+        const Duration(seconds: locationUploadInterval), (timer) {
+      if (_currentP != null) {
+        updateFirestoreLocation(_currentP!);
+      }
+    });
+
     getLocationUpdates().then(
       (_) => {
         getPolylinePoints().then((coordinates) {
@@ -38,6 +53,14 @@ class _MapPageState extends State<MapPage> {
         }),
       },
     );
+  }
+
+  // Cancel the timer when the widget is disposed
+  @override
+  void dispose() {
+    // Cancel the timer when the widget is disposed
+    _locationUpdateTimer.cancel();
+    super.dispose();
   }
 
   @override
@@ -84,20 +107,20 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> getLocationUpdates() async {
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
 
-    _serviceEnabled = await _locationController.serviceEnabled();
-    if (_serviceEnabled) {
-      _serviceEnabled = await _locationController.requestService();
+    serviceEnabled = await _locationController.serviceEnabled();
+    if (serviceEnabled) {
+      serviceEnabled = await _locationController.requestService();
     } else {
       return;
     }
 
-    _permissionGranted = await _locationController.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await _locationController.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
+    permissionGranted = await _locationController.hasPermission();
+    if (permissionGranted == PermissionStatus.denied) {
+      permissionGranted = await _locationController.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
         return;
       }
     }
@@ -111,10 +134,6 @@ class _MapPageState extends State<MapPage> {
               LatLng(currentLocation.latitude!, currentLocation.longitude!);
           _cameraToPosition(_currentP!);
         });
-
-        // Additional my own code
-        // Update Firestore with current location
-        updateFirestoreLocation(_currentP!);
       }
     });
   }
