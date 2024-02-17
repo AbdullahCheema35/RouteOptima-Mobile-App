@@ -44,6 +44,8 @@ dependencies:
   location: ^5.0.0
   flutter_polyline_points: ^2.0.0
   signature: ^5.4.1
+  camera: ^0.10.5+9
+  firebase_storage: ^11.6.0
 
 dev_dependencies:
   flutter_test:

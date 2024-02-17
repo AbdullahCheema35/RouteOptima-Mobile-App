@@ -103,7 +103,7 @@ class _MapPageState extends State<MapPage> {
                 polylines: Set<Polyline>.of(polylines.values),
               ),
               // Render the proximity button if the rider is in proximity
-              if (_inProximity) renderProximityButton(),
+              if (_inProximity) renderProximityButton(context),
             ],
           );
   }
