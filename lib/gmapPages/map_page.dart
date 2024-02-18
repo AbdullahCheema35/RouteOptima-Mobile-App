@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:route_optima_mobile_app/gmapPages/proximity_button.dart';
-import 'package:route_optima_mobile_app/googleMapConsts.dart';
+import 'package:route_optima_mobile_app/gmapPages/googleMapConsts.dart';
 import 'package:location/location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 

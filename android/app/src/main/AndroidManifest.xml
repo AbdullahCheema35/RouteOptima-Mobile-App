@@ -7,6 +7,10 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <!-- End: Add these lines for location permissions -->
 
+    <!-- End: Add these lines for Foreground Sevice Permissions -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+
    <application
         android:label="route_optima_mobile_app"
         android:name="${applicationName}"
@@ -32,6 +36,13 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Added Foreground Service for Location -->
+        <service
+          android:name="RouteOptimaForegroundLocationService"
+          android:stopWithTask="true"
+          android:foregroundServiceType="location"
+          android:exported="false">
+        </service>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data
