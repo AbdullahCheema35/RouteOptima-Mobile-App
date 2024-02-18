@@ -5,14 +5,17 @@ import 'package:route_optima_mobile_app/gmapPages/upload_image.dart';
 import 'package:route_optima_mobile_app/gmapPages/upload_sign.dart';
 
 Widget renderProximityButton(context) {
-  return Positioned(
-    bottom: 16,
-    right: 16,
-    child: ElevatedButton(
-      onPressed: () {
-        _showDeliveryOptionsDialog(context);
-      },
-      child: const Text("Ready to Deliver?"),
+  return Expanded(
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ElevatedButton(
+        style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(Colors.black)),
+        onPressed: () {
+          _showDeliveryOptionsDialog(context);
+        },
+        child: const Text("Ready to Deliver?"),
+      ),
     ),
   );
 }

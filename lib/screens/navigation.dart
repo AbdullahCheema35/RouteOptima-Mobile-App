@@ -42,7 +42,6 @@ class NavigationPage extends StatelessWidget {
       ),
       backgroundColor: Colors.white,
       body: const MapPage(),
-      floatingActionButton: const ReportEmergencyButton(),
     );
   }
 }

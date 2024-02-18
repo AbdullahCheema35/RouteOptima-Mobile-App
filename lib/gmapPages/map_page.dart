@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:route_optima_mobile_app/gmapPages/proximity_button.dart';
 import 'package:route_optima_mobile_app/gmapPages/googleMapConsts.dart';
 import 'package:location/location.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:route_optima_mobile_app/screens/navigation.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -21,8 +23,14 @@ class _MapPageState extends State<MapPage> {
   final Completer<GoogleMapController> _mapController =
       Completer<GoogleMapController>();
 
-  static const LatLng _pGooglePlex = LatLng(37.4223, -122.0848);
-  static const LatLng _pApplePark = LatLng(37.3346, -122.0090);
+  // Src and dest Addresses
+  static const String srcAddr = "Googleplex, Mountain View, CA";
+  static const String destAddr = "Apple Park, Cupertino, CA";
+
+  // Src and dest coordinates
+  static const LatLng _srcCoord = LatLng(37.4223, -122.0848);
+  static const LatLng _destCoord = LatLng(37.3346, -122.0090);
+  // Current Location Coordinates
   LatLng? _currentP;
 
   Map<PolylineId, Polyline> polylines = {};
@@ -39,17 +47,43 @@ class _MapPageState extends State<MapPage> {
   // Proximity radius threshold in meters
   static const double proximityThreshold = 500.0;
 
+  // Attribute to set auto Camera Focus to the rider's location
+  bool _autoCameraFocusEnabled = false;
+
+  // Custom Marker icons
+  BitmapDescriptor? _currLocIcon;
+  BitmapDescriptor? _firstLocIcon;
+  BitmapDescriptor? _lastLocIcon;
+
   @override
   void initState() {
     super.initState();
 
-    // Set up a timer to update the location every timerDuration seconds
-    _locationUpdateTimer = Timer.periodic(
-        const Duration(seconds: locationUploadInterval), (timer) {
-      if (_currentP != null) {
-        updateFirestoreLocation(_currentP!);
-      }
-    });
+    // // Load the custom marker icons
+    // BitmapDescriptor.fromAssetImage(
+    //         const ImageConfiguration(size: Size.fromRadius(1.0)),
+    //         'assets/markers/curr_loc.png')
+    //     .then((icon) {
+    //   setState(() {
+    //     _currLocIcon = icon;
+    //   });
+    // });
+    // BitmapDescriptor.fromAssetImage(
+    //         const ImageConfiguration(size: Size.fromRadius(1.0)),
+    //         'assets/markers/first_loc.png')
+    //     .then((icon) {
+    //   setState(() {
+    //     _firstLocIcon = icon;
+    //   });
+    // });
+    // BitmapDescriptor.fromAssetImage(
+    //         const ImageConfiguration(size: Size.fromRadius(1.0)),
+    //         'assets/markers/last_loc.png')
+    //     .then((icon) {
+    //   setState(() {
+    //     _lastLocIcon = icon;
+    //   });
+    // });
 
     getLocationUpdates().then(
       (_) => {
@@ -60,6 +94,14 @@ class _MapPageState extends State<MapPage> {
         }),
       },
     );
+
+    // Set up a timer to update the location every timerDuration seconds
+    _locationUpdateTimer = Timer.periodic(
+        const Duration(seconds: locationUploadInterval), (timer) {
+      if (_currentP != null) {
+        updateFirestoreLocation(_currentP!);
+      }
+    });
   }
 
   // Cancel the timer when the widget is disposed
@@ -74,7 +116,7 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     return _currentP == null
         ? const Center(
-            child: Text("Loading..."),
+            child: CircularProgressIndicator(),
           )
         : Stack(
             children: [
@@ -82,33 +124,108 @@ class _MapPageState extends State<MapPage> {
                 onMapCreated: ((GoogleMapController controller) =>
                     _mapController.complete(controller)),
                 initialCameraPosition: const CameraPosition(
-                  target: _pGooglePlex,
+                  target: _srcCoord,
                   zoom: 13,
                 ),
                 markers: {
+                  // Marker(
+                  //   markerId: const MarkerId("currLoc"),
+                  //   icon: _currLocIcon ??
+                  //       BitmapDescriptor.defaultMarkerWithHue(
+                  //           BitmapDescriptor.hueBlue),
+                  //   position: _currentP!,
+                  // ),
                   Marker(
-                    markerId: const MarkerId("_currentLocation"),
-                    icon: BitmapDescriptor.defaultMarker,
-                    position: _currentP!,
+                    markerId: const MarkerId("srcLoc"),
+                    icon: _firstLocIcon ??
+                        BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueOrange),
+                    position: _srcCoord,
+                    infoWindow: const InfoWindow(
+                      title: srcAddr,
+                    ),
                   ),
-                  const Marker(
-                      markerId: MarkerId("_sourceLocation"),
-                      icon: BitmapDescriptor.defaultMarker,
-                      position: _pGooglePlex),
-                  const Marker(
-                      markerId: MarkerId("_destionationLocation"),
-                      icon: BitmapDescriptor.defaultMarker,
-                      position: _pApplePark)
+                  Marker(
+                    markerId: const MarkerId("destLoc"),
+                    icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueRed),
+                    position: _destCoord,
+                    infoWindow: const InfoWindow(
+                      title: destAddr,
+                    ),
+                  ),
+                  Marker(
+                    markerId: const MarkerId("lastLoc"),
+                    icon: _lastLocIcon ??
+                        BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueOrange),
+                    position: _destCoord,
+                    visible: _lastLocIcon != null,
+                  ),
+                },
+                circles: {
+                  Circle(
+                    circleId: const CircleId("currLocCircle"),
+                    center: _currentP!,
+                    radius: proximityThreshold,
+                    fillColor: Colors.blueAccent.withOpacity(0.2),
+                    strokeWidth: 0,
+                  ),
                 },
                 polylines: Set<Polyline>.of(polylines.values),
+                zoomControlsEnabled: false,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                onLongPress: (LatLng latLng) async {
+                  final GoogleMapController controller =
+                      await _mapController.future;
+                  CameraPosition newCameraPosition = CameraPosition(
+                    target: latLng,
+                    zoom: 13,
+                  );
+                  await controller.animateCamera(
+                    CameraUpdate.newCameraPosition(newCameraPosition),
+                  );
+                },
               ),
-              // Render the proximity button if the rider is in proximity
-              if (_inProximity) renderProximityButton(context),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: ReportEmergencyButton(),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: _getNavButton(),
+                      ),
+                    ],
+                  ),
+                  // Render the proximity button if the rider is in proximity
+                  Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Visibility(
+                        visible: _inProximity,
+                        child: renderProximityButton(context),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ],
           );
   }
 
   Future<void> _cameraToPosition(LatLng pos) async {
+    // If auto camera focus is disabled, return
+    if (!_autoCameraFocusEnabled) return;
+
     final GoogleMapController controller = await _mapController.future;
     CameraPosition newCameraPosition = CameraPosition(
       target: pos,
@@ -148,7 +265,7 @@ class _MapPageState extends State<MapPage> {
         // Calculate the distance between the current location and the destination
         double distance = calculateDistance(
           newP,
-          _pApplePark,
+          _destCoord,
         );
 
         setState(() {
@@ -199,8 +316,8 @@ class _MapPageState extends State<MapPage> {
     PolylinePoints polylinePoints = PolylinePoints();
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
       GOOGLE_MAPS_API_KEY,
-      PointLatLng(_pGooglePlex.latitude, _pGooglePlex.longitude),
-      PointLatLng(_pApplePark.latitude, _pApplePark.longitude),
+      PointLatLng(_srcCoord.latitude, _srcCoord.longitude),
+      PointLatLng(_destCoord.latitude, _destCoord.longitude),
       travelMode: TravelMode.driving,
     );
     if (result.points.isNotEmpty) {
@@ -217,11 +334,32 @@ class _MapPageState extends State<MapPage> {
     PolylineId id = const PolylineId("poly");
     Polyline polyline = Polyline(
         polylineId: id,
-        color: Colors.black,
+        color: Colors.blueAccent,
         points: polylineCoordinates,
         width: 8);
     setState(() {
       polylines[id] = polyline;
     });
+  }
+
+  Widget _getNavButton() {
+    return FloatingActionButton(
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      onPressed: () {
+        setState(() {
+          _autoCameraFocusEnabled = !_autoCameraFocusEnabled;
+        });
+        _cameraToPosition(_currentP ?? _srcCoord);
+      },
+      tooltip: 'Show Current Location',
+      child: _autoCameraFocusEnabled
+          ? const FaIcon(
+              FontAwesomeIcons.locationArrow,
+            )
+          : const FaIcon(
+              FontAwesomeIcons.locationCrosshairs,
+            ),
+    );
   }
 }
