@@ -47,4 +47,4 @@ app.*.map.json
 .vscode/
 
 # API Key File
-lib/gmapPages/googleMapConsts.dart
+lib/consts/googleMapConsts.dart

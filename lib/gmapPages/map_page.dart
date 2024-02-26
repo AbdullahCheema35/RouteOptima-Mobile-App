@@ -5,10 +5,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:route_optima_mobile_app/gmapPages/proximity_button.dart';
-import 'package:route_optima_mobile_app/gmapPages/googleMapConsts.dart';
-import 'package:location/location.dart';
+import 'package:route_optima_mobile_app/consts/googleMapConsts.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:route_optima_mobile_app/screens/navigation.dart';
+import 'package:maps_toolkit/maps_toolkit.dart' as mp;
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -18,39 +19,39 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> {
-  final Location _locationController = Location();
+  final _userId = '46ACIEbnlM4N8dGez77b';
 
   final Completer<GoogleMapController> _mapController =
       Completer<GoogleMapController>();
 
-  // Src and dest Addresses
-  static const String srcAddr = "Googleplex, Mountain View, CA";
-  static const String destAddr = "Apple Park, Cupertino, CA";
+  static const String srcAddr =
+      "72 Rohtas Rd, G-9 Markaz G 9 Markaz G-9, Islamabad, Islamabad Capital Territory 44090, Pakistan";
 
-  // Src and dest coordinates
-  static const LatLng _srcCoord = LatLng(37.4223, -122.0848);
-  static const LatLng _destCoord = LatLng(37.3346, -122.0090);
-  // Current Location Coordinates
+  static const String destAddr =
+      "17, G-11/3 G 11/3 G-11, Islamabad, Islamabad Capital Territory, Pakistan";
+
+  static const _srcLat = 33.6877;
+  static const _srcLng = 73.0339;
+  static const _destLat = 33.6755;
+  static const _destLng = 73.0007;
+
+  final LatLng _srcCoord = const LatLng(_srcLat, _srcLng);
+  final LatLng _destCoord = const LatLng(_destLat, _destLng);
+
   LatLng? _currentP;
+
+  final int _polylineId = 1;
 
   Map<PolylineId, Polyline> polylines = {};
 
-  // Additional attributes for timer and last uploaded location and Duration of the timer
-  // LatLng? _lastUploadedLocation; // Track the last uploaded location
-  late Timer _locationUpdateTimer; // Timer for periodic updates
-  static const int locationUploadInterval =
-      10; // Duration of the timer in seconds
+  late Timer _locationUpdateTimer;
+  static const int locationUploadInterval = 10;
 
-  // Attribute to conditionally reder the proximity button
   bool _inProximity = false;
-
-  // Proximity radius threshold in meters
   static const double proximityThreshold = 500.0;
 
-  // Attribute to set auto Camera Focus to the rider's location
   bool _autoCameraFocusEnabled = false;
 
-  // Custom Marker icons
   BitmapDescriptor? _currLocIcon;
   BitmapDescriptor? _firstLocIcon;
   BitmapDescriptor? _lastLocIcon;
@@ -59,43 +60,15 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
 
-    // // Load the custom marker icons
-    // BitmapDescriptor.fromAssetImage(
-    //         const ImageConfiguration(size: Size.fromRadius(1.0)),
-    //         'assets/markers/curr_loc.png')
-    //     .then((icon) {
-    //   setState(() {
-    //     _currLocIcon = icon;
-    //   });
-    // });
-    // BitmapDescriptor.fromAssetImage(
-    //         const ImageConfiguration(size: Size.fromRadius(1.0)),
-    //         'assets/markers/first_loc.png')
-    //     .then((icon) {
-    //   setState(() {
-    //     _firstLocIcon = icon;
-    //   });
-    // });
-    // BitmapDescriptor.fromAssetImage(
-    //         const ImageConfiguration(size: Size.fromRadius(1.0)),
-    //         'assets/markers/last_loc.png')
-    //     .then((icon) {
-    //   setState(() {
-    //     _lastLocIcon = icon;
-    //   });
-    // });
-
     getLocationUpdates().then(
       (_) => {
         getPolylinePoints().then((coordinates) {
-          // Generate polyline and store in Firestore
           generatePolyLineFromPoints(coordinates);
           updateFirestorePolyline(coordinates);
         }),
       },
     );
 
-    // Set up a timer to update the location every timerDuration seconds
     _locationUpdateTimer = Timer.periodic(
         const Duration(seconds: locationUploadInterval), (timer) {
       if (_currentP != null) {
@@ -104,11 +77,10 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  // Cancel the timer when the widget is disposed
   @override
   void dispose() {
-    // Cancel the timer when the widget is disposed
     _locationUpdateTimer.cancel();
+    // _positionStream.cancel();
     super.dispose();
   }
 
@@ -123,18 +95,11 @@ class _MapPageState extends State<MapPage> {
               GoogleMap(
                 onMapCreated: ((GoogleMapController controller) =>
                     _mapController.complete(controller)),
-                initialCameraPosition: const CameraPosition(
+                initialCameraPosition: CameraPosition(
                   target: _srcCoord,
                   zoom: 13,
                 ),
                 markers: {
-                  // Marker(
-                  //   markerId: const MarkerId("currLoc"),
-                  //   icon: _currLocIcon ??
-                  //       BitmapDescriptor.defaultMarkerWithHue(
-                  //           BitmapDescriptor.hueBlue),
-                  //   position: _currentP!,
-                  // ),
                   Marker(
                     markerId: const MarkerId("srcLoc"),
                     icon: _firstLocIcon ??
@@ -153,14 +118,6 @@ class _MapPageState extends State<MapPage> {
                     infoWindow: const InfoWindow(
                       title: destAddr,
                     ),
-                  ),
-                  Marker(
-                    markerId: const MarkerId("lastLoc"),
-                    icon: _lastLocIcon ??
-                        BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueOrange),
-                    position: _destCoord,
-                    visible: _lastLocIcon != null,
                   ),
                 },
                 circles: {
@@ -205,7 +162,6 @@ class _MapPageState extends State<MapPage> {
                       ),
                     ],
                   ),
-                  // Render the proximity button if the rider is in proximity
                   Row(
                     mainAxisSize: MainAxisSize.max,
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -223,7 +179,6 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> _cameraToPosition(LatLng pos) async {
-    // If auto camera focus is disabled, return
     if (!_autoCameraFocusEnabled) return;
 
     final GoogleMapController controller = await _mapController.future;
@@ -238,31 +193,26 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> getLocationUpdates() async {
     bool serviceEnabled;
-    PermissionStatus permissionGranted;
+    LocationPermission permissionGranted;
 
-    serviceEnabled = await _locationController.serviceEnabled();
-    if (serviceEnabled) {
-      serviceEnabled = await _locationController.requestService();
-    } else {
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
       return;
     }
 
-    permissionGranted = await _locationController.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
-      permissionGranted = await _locationController.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) {
+    permissionGranted = await Geolocator.checkPermission();
+    if (permissionGranted == LocationPermission.denied) {
+      permissionGranted = await Geolocator.requestPermission();
+      if (permissionGranted != LocationPermission.whileInUse &&
+          permissionGranted != LocationPermission.always) {
         return;
       }
     }
 
-    _locationController.onLocationChanged
-        .listen((LocationData currentLocation) {
-      if (currentLocation.latitude != null &&
-          currentLocation.longitude != null) {
-        final newP =
-            LatLng(currentLocation.latitude!, currentLocation.longitude!);
+    Geolocator.getPositionStream().listen((Position position) {
+      if (position.latitude != null && position.longitude != null) {
+        final newP = LatLng(position.latitude!, position.longitude!);
 
-        // Calculate the distance between the current location and the destination
         double distance = calculateDistance(
           newP,
           _destCoord,
@@ -271,8 +221,6 @@ class _MapPageState extends State<MapPage> {
         setState(() {
           _currentP = newP;
           _cameraToPosition(_currentP!);
-
-          // Check if the rider is in proximity
           _inProximity = distance <= proximityThreshold;
         });
       }
@@ -283,10 +231,8 @@ class _MapPageState extends State<MapPage> {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference locations = firestore.collection('riderLocation');
 
-    // Specify the document ID you want to update
-    DocumentReference documentRef = locations.doc('46ACIEbnlM4N8dGez77b');
+    DocumentReference documentRef = locations.doc(_userId);
 
-    // Use the update method to only update the specified fields
     documentRef.update({
       'lat': currentLocation.latitude,
       'long': currentLocation.longitude,
@@ -297,10 +243,8 @@ class _MapPageState extends State<MapPage> {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference polylines = firestore.collection('riderLocation');
 
-    // Specify the document ID you want to update
-    DocumentReference documentRef = polylines.doc('46ACIEbnlM4N8dGez77b');
+    DocumentReference documentRef = polylines.doc(_userId);
 
-    // Update Firestore with polyline coordinates
     documentRef.update({
       'polyline': polylineCoordinates
           .map((latLng) => {
@@ -308,6 +252,17 @@ class _MapPageState extends State<MapPage> {
                 'long': latLng.longitude,
               })
           .toList(),
+      'polylineId': _polylineId,
+      'srcAddr': srcAddr,
+      'destAddr': destAddr,
+      'srcCoord': {
+        'lat': _srcCoord.latitude,
+        'long': _srcCoord.longitude,
+      },
+      'destCoord': {
+        'lat': _destCoord.latitude,
+        'long': _destCoord.longitude,
+      },
     });
   }
 
@@ -315,7 +270,7 @@ class _MapPageState extends State<MapPage> {
     List<LatLng> polylineCoordinates = [];
     PolylinePoints polylinePoints = PolylinePoints();
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      GOOGLE_MAPS_API_KEY,
+      GEO_API_KEY,
       PointLatLng(_srcCoord.latitude, _srcCoord.longitude),
       PointLatLng(_destCoord.latitude, _destCoord.longitude),
       travelMode: TravelMode.driving,
@@ -331,7 +286,7 @@ class _MapPageState extends State<MapPage> {
   }
 
   void generatePolyLineFromPoints(List<LatLng> polylineCoordinates) async {
-    PolylineId id = const PolylineId("poly");
+    PolylineId id = PolylineId(_polylineId.toString());
     Polyline polyline = Polyline(
         polylineId: id,
         color: Colors.blueAccent,

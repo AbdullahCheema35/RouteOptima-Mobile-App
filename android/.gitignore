@@ -11,3 +11,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Ignore app/gradle.properties file because it contains sensitive information.
+**/gradle.properties

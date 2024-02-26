@@ -61,6 +61,12 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+
+            // Entry for Google API Key
+            manifestPlaceholders = [GEO_API_KEY: project.hasProperty("GEO_API_KEY") ? project.GEO_API_KEY : "Insert_API_Key_in_gradle.properties"]
+        }
+        debug {
+            manifestPlaceholders = [GEO_API_KEY: project.hasProperty("GEO_API_KEY") ? project.GEO_API_KEY : "Insert_API_Key_in_gradle.properties"]
         }
     }
 }
