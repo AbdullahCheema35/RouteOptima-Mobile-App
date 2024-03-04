@@ -57,6 +57,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () async {
           try {
             await _initializeControllerFuture;

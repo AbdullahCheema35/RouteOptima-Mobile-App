@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
+    <!-- Add these lines for Vibration Permission -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
    <application
         android:label="route_optima_mobile_app"
         android:name="${applicationName}"

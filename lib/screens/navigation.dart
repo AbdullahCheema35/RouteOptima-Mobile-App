@@ -52,6 +52,7 @@ class ReportEmergencyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FloatingActionButton(
+      heroTag: null,
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
       onPressed: () {

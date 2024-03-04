@@ -110,6 +110,7 @@ class ParcelListPage extends StatelessWidget {
       //   ),
       // ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: () {
           // Implement functionality for Start Trip button
           // Show Parcel Details

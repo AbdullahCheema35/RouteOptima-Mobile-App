@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:route_optima_mobile_app/consts/map_consts.dart';
 import 'package:route_optima_mobile_app/gmapPages/edge_warning_overlay.dart';
 import 'package:route_optima_mobile_app/gmapPages/proximity_button.dart';
 import 'package:route_optima_mobile_app/consts/googleMapConsts.dart';
@@ -12,6 +13,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:route_optima_mobile_app/screens/emergency_request_dialog.dart';
 import 'package:route_optima_mobile_app/screens/navigation.dart';
 import 'package:maps_toolkit/maps_toolkit.dart' as mp;
+import 'package:vibration/vibration.dart';
+import 'package:flutter_beep/flutter_beep.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -23,8 +26,11 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   final _userId = '46ACIEbnlM4N8dGez77b';
 
-  final Completer<GoogleMapController> _mapController =
-      Completer<GoogleMapController>();
+  GoogleMapController? _gMapController;
+
+  StreamSubscription<Position>? _positionStream;
+
+  bool _hasVibrator = false;
 
   static const String srcAddr =
       "72 Rohtas Rd, G-9 Markaz G 9 Markaz G-9, Islamabad, Islamabad Capital Territory 44090, Pakistan";
@@ -37,10 +43,7 @@ class _MapPageState extends State<MapPage> {
   static const _destLat = 33.6755;
   static const _destLng = 73.0007;
 
-  // Zoom Level
-  static const double default_zoom = 13;
-
-  double _zoom = default_zoom;
+  double _zoom = defaultZoom;
 
   final LatLng _srcCoord = const LatLng(_srcLat, _srcLng);
   final LatLng _destCoord = const LatLng(_destLat, _destLng);
@@ -51,34 +54,18 @@ class _MapPageState extends State<MapPage> {
 
   Map<PolylineId, Polyline> polylines = {};
 
-  static const int locationStreamDistanceFilter = 100;
-
-  late Timer _locationUpdateTimer;
-  // static const int locationUploadInterval = 10;
-
   bool _inProximity = false;
-  static const double proximityThreshold = 100.0;
 
   bool _autoCameraFocusEnabled = false;
 
-  BitmapDescriptor? _currLocIcon;
-  BitmapDescriptor? _firstLocIcon;
-  BitmapDescriptor? _lastLocIcon;
-
-  // // Stats for updates
-  // int locationUpdateCount = 0;
-  // int lastLocationUpdateMillis = -1;
-  // int timeStarted = -1;
-
   // Additional fields for uploading current location to Firestore
   // according to the update interval set
-
-  static const int locationUploadInterval = 10000; // in ms
   int lastDbUpdateStamp = 0; // in ms
 
   // GeoFencing fields
-  static const int geoFencingTolerance = 200; // meters
   bool? _isOnPath;
+
+  // Vibration duration
 
   @override
   void initState() {
@@ -88,23 +75,24 @@ class _MapPageState extends State<MapPage> {
       (_) => {
         getPolylinePoints().then((polylinesData) {
           generatePolyLineFromPoints(polylinesData);
-          // updateFirestorePolyline(coordinates);
         }),
       },
     );
 
-    // _locationUpdateTimer = Timer.periodic(
-    //     const Duration(seconds: locationUploadInterval), (timer) {
-    //   if (_currentP != null) {
-    //     updateFirestoreLocation(_currentP!);
-    //   }
-    // });
+    // Check if the device has a vibrator
+    Vibration.hasVibrator().then((value) {
+      _hasVibrator = value ?? false;
+    });
   }
 
   @override
   void dispose() {
-    // _locationUpdateTimer.cancel();
-    // _positionStream.cancel();
+    if (_gMapController != null) {
+      _gMapController!.dispose();
+    }
+    if (_positionStream != null) {
+      _positionStream!.cancel();
+    }
     super.dispose();
   }
 
@@ -126,20 +114,19 @@ class _MapPageState extends State<MapPage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                // padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: GoogleMap(
-                  onMapCreated: ((GoogleMapController controller) =>
-                      _mapController.complete(controller)),
+                  onMapCreated: ((GoogleMapController controller) {
+                    _gMapController = controller;
+                  }),
                   initialCameraPosition: CameraPosition(
                     target: _srcCoord,
-                    zoom: default_zoom,
+                    zoom: defaultZoom,
                   ),
                   markers: {
                     Marker(
                       markerId: const MarkerId("srcLoc"),
-                      icon: _firstLocIcon ??
-                          BitmapDescriptor.defaultMarkerWithHue(
-                              BitmapDescriptor.hueOrange),
+                      icon: BitmapDescriptor.defaultMarkerWithHue(
+                          BitmapDescriptor.hueOrange),
                       position: _srcCoord,
                       infoWindow: const InfoWindow(
                         title: srcAddr,
@@ -170,25 +157,23 @@ class _MapPageState extends State<MapPage> {
                   myLocationEnabled: true,
                   myLocationButtonEnabled: false,
                   onLongPress: (LatLng latLng) async {
-                    final GoogleMapController controller =
-                        await _mapController.future;
-
                     // Set zoom level to default
-                    _zoom = default_zoom;
+                    _zoom = defaultZoom;
 
                     CameraPosition newCameraPosition = CameraPosition(
                       target: latLng,
                       zoom: _zoom,
                     );
-                    await controller.animateCamera(
-                      CameraUpdate.newCameraPosition(newCameraPosition),
-                    );
+                    if (_gMapController != null) {
+                      _gMapController!.animateCamera(
+                        CameraUpdate.newCameraPosition(newCameraPosition),
+                      );
+                    }
                   },
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                // padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -226,16 +211,17 @@ class _MapPageState extends State<MapPage> {
   Future<void> _cameraToPosition(LatLng pos) async {
     if (!_autoCameraFocusEnabled) return;
 
-    final GoogleMapController controller = await _mapController.future;
+    if (_gMapController == null) return;
 
     // Get current zoom level
-    _zoom = await controller.getZoomLevel();
+    _zoom = await _gMapController!.getZoomLevel();
 
     CameraPosition newCameraPosition = CameraPosition(
       target: pos,
       zoom: _zoom,
     );
-    await controller.animateCamera(
+
+    await _gMapController!.animateCamera(
       CameraUpdate.newCameraPosition(newCameraPosition),
     );
   }
@@ -258,28 +244,12 @@ class _MapPageState extends State<MapPage> {
       }
     }
 
-    Geolocator.getPositionStream(
+    _positionStream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.bestForNavigation,
         distanceFilter: locationStreamDistanceFilter,
       ),
     ).listen((Position position) {
-      // print(
-      //     "Location Change Detected: ${position.latitude}, ${position.longitude}");
-
-      // if (timeStarted == -1) {
-      //   timeStarted = DateTime.now().millisecondsSinceEpoch;
-      //   lastLocationUpdateMillis = timeStarted;
-      // } else {
-      //   locationUpdateCount++;
-      //   final currTime = DateTime.now().millisecondsSinceEpoch;
-      //   print(
-      //       "Time since last update: ${currTime - lastLocationUpdateMillis}ms");
-      //   lastLocationUpdateMillis = currTime;
-      //   print(
-      //       "Avg time between updates: ${(currTime - timeStarted) / locationUpdateCount}ms");
-      // }
-
       final newP = LatLng(position.latitude, position.longitude);
 
       // Compute distance from destination to check for proximity using geolocator
@@ -324,33 +294,6 @@ class _MapPageState extends State<MapPage> {
       'long': currentLocation.longitude,
     });
   }
-
-  // Future<void> updateFirestorePolyline(List<LatLng> polylineCoordinates) async {
-  //   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  //   CollectionReference polylines = firestore.collection('riderLocation');
-
-  //   DocumentReference documentRef = polylines.doc(_userId);
-
-  //   documentRef.update({
-  //     'polyline': polylineCoordinates
-  //         .map((latLng) => {
-  //               'lat': latLng.latitude,
-  //               'long': latLng.longitude,
-  //             })
-  //         .toList(),
-  //     'polylineId': _polylineId,
-  //     'srcAddr': srcAddr,
-  //     'destAddr': destAddr,
-  //     'srcCoord': {
-  //       'lat': _srcCoord.latitude,
-  //       'long': _srcCoord.longitude,
-  //     },
-  //     'destCoord': {
-  //       'lat': _destCoord.latitude,
-  //       'long': _destCoord.longitude,
-  //     },
-  //   });
-  // }
 
   Future<List<LatLng>> getPolylinePoints() async {
     List<LatLng> polylineCoordinates = [];
@@ -420,8 +363,9 @@ class _MapPageState extends State<MapPage> {
 
   Widget _getNavButton() {
     return FloatingActionButton(
+      heroTag: null,
       backgroundColor: Colors.black,
-      foregroundColor: Colors.white,
+      foregroundColor: const Color.fromARGB(255, 239, 225, 225),
       onPressed: () {
         setState(() {
           _autoCameraFocusEnabled = !_autoCameraFocusEnabled;
@@ -440,15 +384,34 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> geoFencingFunction(
-      LatLng point, List<LatLng> polylinePath) async {
-    mp.LatLng _point = mp.LatLng(point.latitude, point.longitude);
-    List<mp.LatLng> _polyline =
-        polylinePath.map((e) => mp.LatLng(e.latitude, e.longitude)).toList();
+      LatLng origPoint, List<LatLng> origPolyline) async {
+    mp.LatLng point = mp.LatLng(origPoint.latitude, origPoint.longitude);
+
+    List<mp.LatLng> polyline =
+        origPolyline.map((e) => mp.LatLng(e.latitude, e.longitude)).toList();
+
     final isOnPathResult = mp.PolygonUtil.isLocationOnPath(
-        _point, _polyline, true,
+        point, polyline, true,
         tolerance: geoFencingTolerance);
+
     if (_isOnPath == null || _isOnPath != isOnPathResult) {
+      // Set state of the app
+      setState(() {
+        _isOnPath = isOnPathResult;
+      });
+
+      // If the user is not on the path, then do the following
       if (isOnPathResult == false) {
+        // Beep the device
+        FlutterBeep.playSysSound(AndroidSoundIDs.TONE_CDMA_ABBR_ALERT);
+
+        // Check if the device has a vibrator
+        if (_hasVibrator) {
+          // Vibrate the device
+          Vibration.vibrate(duration: vibrationDuration);
+        }
+
+        // Show dialog to the user
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -491,9 +454,6 @@ class _MapPageState extends State<MapPage> {
           },
         );
       }
-      setState(() {
-        _isOnPath = isOnPathResult;
-      });
     }
   }
 }
