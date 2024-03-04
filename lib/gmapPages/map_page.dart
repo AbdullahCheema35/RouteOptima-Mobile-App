@@ -37,6 +37,11 @@ class _MapPageState extends State<MapPage> {
   static const _destLat = 33.6755;
   static const _destLng = 73.0007;
 
+  // Zoom Level
+  static const double default_zoom = 13;
+
+  double _zoom = default_zoom;
+
   final LatLng _srcCoord = const LatLng(_srcLat, _srcLng);
   final LatLng _destCoord = const LatLng(_destLat, _destLng);
 
@@ -52,7 +57,7 @@ class _MapPageState extends State<MapPage> {
   // static const int locationUploadInterval = 10;
 
   bool _inProximity = false;
-  static const double proximityThreshold = 500.0;
+  static const double proximityThreshold = 100.0;
 
   bool _autoCameraFocusEnabled = false;
 
@@ -60,10 +65,10 @@ class _MapPageState extends State<MapPage> {
   BitmapDescriptor? _firstLocIcon;
   BitmapDescriptor? _lastLocIcon;
 
-  // Stats for updates
-  int locationUpdateCount = 0;
-  int lastLocationUpdateMillis = -1;
-  int timeStarted = -1;
+  // // Stats for updates
+  // int locationUpdateCount = 0;
+  // int lastLocationUpdateMillis = -1;
+  // int timeStarted = -1;
 
   // Additional fields for uploading current location to Firestore
   // according to the update interval set
@@ -72,7 +77,7 @@ class _MapPageState extends State<MapPage> {
   int lastDbUpdateStamp = 0; // in ms
 
   // GeoFencing fields
-  static const int geoFencingTolerance = 200;
+  static const int geoFencingTolerance = 200; // meters
   bool? _isOnPath;
 
   @override
@@ -127,7 +132,7 @@ class _MapPageState extends State<MapPage> {
                       _mapController.complete(controller)),
                   initialCameraPosition: CameraPosition(
                     target: _srcCoord,
-                    zoom: 13,
+                    zoom: default_zoom,
                   ),
                   markers: {
                     Marker(
@@ -167,9 +172,13 @@ class _MapPageState extends State<MapPage> {
                   onLongPress: (LatLng latLng) async {
                     final GoogleMapController controller =
                         await _mapController.future;
+
+                    // Set zoom level to default
+                    _zoom = default_zoom;
+
                     CameraPosition newCameraPosition = CameraPosition(
                       target: latLng,
-                      zoom: 13,
+                      zoom: _zoom,
                     );
                     await controller.animateCamera(
                       CameraUpdate.newCameraPosition(newCameraPosition),
@@ -218,9 +227,13 @@ class _MapPageState extends State<MapPage> {
     if (!_autoCameraFocusEnabled) return;
 
     final GoogleMapController controller = await _mapController.future;
+
+    // Get current zoom level
+    _zoom = await controller.getZoomLevel();
+
     CameraPosition newCameraPosition = CameraPosition(
       target: pos,
-      zoom: 13,
+      zoom: _zoom,
     );
     await controller.animateCamera(
       CameraUpdate.newCameraPosition(newCameraPosition),
