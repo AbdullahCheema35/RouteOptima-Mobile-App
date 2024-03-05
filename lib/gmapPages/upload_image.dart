@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:route_optima_mobile_app/gmapPages/firebase_storage.dart';
 
 class TakePictureScreen extends StatefulWidget {
-  const TakePictureScreen({super.key});
+  const TakePictureScreen({required this.title, super.key});
+  final String title;
 
   @override
   State<TakePictureScreen> createState() => _TakePictureScreenState();
@@ -45,7 +46,9 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
       body: FutureBuilder<void>(
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
@@ -67,13 +70,27 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
 
             if (!context.mounted) return;
 
-            await Navigator.of(context).push(
-              MaterialPageRoute(
+            Navigator.push(
+              context,
+              MaterialPageRoute<Map<String, dynamic>>(
                 builder: (context) => DisplayPictureScreen(
+                  title: widget.title,
                   imageBytes: imageBytes,
                 ),
               ),
-            );
+            ).then((value) {
+              if (value != null) {
+                if (value['success'] == 1) {
+                  // Image uploaded
+                  value['success'] = true;
+                  Navigator.pop(context, value);
+                } else if (value['success'] == 0) {
+                  // Image upload canceled
+                  value['success'] = false;
+                  Navigator.pop(context, value);
+                }
+              }
+            });
           } catch (e) {
             print(e);
           }
@@ -86,13 +103,17 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
 
 class DisplayPictureScreen extends StatelessWidget {
   final Uint8List imageBytes;
+  final String title;
 
-  const DisplayPictureScreen({super.key, required this.imageBytes});
+  const DisplayPictureScreen(
+      {super.key, required this.imageBytes, required this.title});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
+      appBar: AppBar(
+        title: Text(title),
+      ),
       body: Image.memory(imageBytes),
       bottomNavigationBar: BottomAppBar(
         child: Row(
@@ -100,30 +121,42 @@ class DisplayPictureScreen extends StatelessWidget {
           children: [
             IconButton(
               onPressed: () {
+                // 1 if image uploaded, 0 if canceled, -1 if retake
+                Map<String, dynamic> result = {
+                  'success': -1,
+                };
                 // Retake the picture
-                Navigator.of(context).pop();
+                Navigator.pop(context, result);
               },
               icon: const Icon(Icons.replay),
             ),
             IconButton(
               onPressed: () async {
                 // Save Image to cloud storage
-                await uploadImage(imageBytes);
+                String downloadURL = await uploadImage(imageBytes);
                 print('Image saved');
 
+                // 1 if image uploaded, 0 if canceled, -1 if retake
+                Map<String, dynamic> result = {
+                  'success': 1,
+                  'link': downloadURL,
+                };
+
                 // Close the image display screen and the camera screen
-                Navigator.of(context)
-                  ..pop()
-                  ..pop();
+                Navigator.pop(context, result);
               },
               icon: const Icon(Icons.cloud_upload),
             ),
             IconButton(
               onPressed: () {
+                // 1 if image uploaded, 0 if canceled, -1 if retake
+                // 1 if image uploaded, 0 if canceled, -1 if retake
+                Map<String, dynamic> result = {
+                  'success': 0,
+                };
+
                 // Cancel the image upload
-                Navigator.of(context)
-                  ..pop()
-                  ..pop();
+                Navigator.pop(context, result);
               },
               icon: const Icon(Icons.cancel),
             ),

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:route_optima_mobile_app/screens/emergency_request_dialog.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:route_optima_mobile_app/gmapPages/map_page.dart';
 
 class NavigationPage extends StatelessWidget {
-  const NavigationPage({super.key});
+  const NavigationPage({required this.userId, super.key});
+
+  final String userId;
 
   @override
   Widget build(BuildContext context) {
@@ -41,31 +43,29 @@ class NavigationPage extends StatelessWidget {
         ),
       ),
       backgroundColor: Colors.white,
-      body: const MapPage(),
-    );
-  }
-}
-
-class ReportEmergencyButton extends StatelessWidget {
-  const ReportEmergencyButton({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return FloatingActionButton(
-      heroTag: null,
-      backgroundColor: Colors.black,
-      foregroundColor: Colors.white,
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return EmergencyRequestDialog();
-          },
-        );
-      },
-      tooltip: 'Report Emergency',
-      child: const FaIcon(
-        FontAwesomeIcons.triangleExclamation,
+      body: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance
+            .collection('riderLocation')
+            .doc(userId)
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            // While data is loading, display a loading indicator
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            // If there's an error, display an error message
+            return Text('Error: ${snapshot.error}');
+          } else {
+            // Data is successfully loaded, pass it to MapPage
+            Map<String, dynamic> locationData =
+                snapshot.data!.data() as Map<String, dynamic>;
+            return MapPage(
+              userId: userId,
+              riderLocationData: locationData,
+              assignmentsData: const {},
+            );
+          }
+        },
       ),
     );
   }

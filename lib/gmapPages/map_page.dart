@@ -3,54 +3,40 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:route_optima_mobile_app/consts/map_consts.dart';
 import 'package:route_optima_mobile_app/gmapPages/edge_warning_overlay.dart';
 import 'package:route_optima_mobile_app/gmapPages/proximity_button.dart';
-import 'package:route_optima_mobile_app/consts/googleMapConsts.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:route_optima_mobile_app/screens/emergency_request_dialog.dart';
-import 'package:route_optima_mobile_app/screens/navigation.dart';
 import 'package:maps_toolkit/maps_toolkit.dart' as mp;
 import 'package:vibration/vibration.dart';
 import 'package:flutter_beep/flutter_beep.dart';
 
 class MapPage extends StatefulWidget {
-  const MapPage({super.key});
+  const MapPage({
+    required this.userId,
+    required this.riderLocationData,
+    required this.assignmentsData,
+    super.key,
+  });
+
+  final String userId;
+  final Map<String, dynamic> riderLocationData;
+  final Map<String, dynamic> assignmentsData;
 
   @override
   State<MapPage> createState() => _MapPageState();
 }
 
 class _MapPageState extends State<MapPage> {
-  final _userId = '46ACIEbnlM4N8dGez77b';
-
   GoogleMapController? _gMapController;
 
   StreamSubscription<Position>? _positionStream;
 
   bool _hasVibrator = false;
 
-  static const String srcAddr =
-      "72 Rohtas Rd, G-9 Markaz G 9 Markaz G-9, Islamabad, Islamabad Capital Territory 44090, Pakistan";
-
-  static const String destAddr =
-      "17, G-11/3 G 11/3 G-11, Islamabad, Islamabad Capital Territory, Pakistan";
-
-  static const _srcLat = 33.6877;
-  static const _srcLng = 73.0339;
-  static const _destLat = 33.6755;
-  static const _destLng = 73.0007;
-
   double _zoom = defaultZoom;
-
-  final LatLng _srcCoord = const LatLng(_srcLat, _srcLng);
-  final LatLng _destCoord = const LatLng(_destLat, _destLng);
-
-  LatLng? _currentP;
-
-  final int _polylineId = 1;
 
   Map<PolylineId, Polyline> polylines = {};
 
@@ -65,19 +51,48 @@ class _MapPageState extends State<MapPage> {
   // GeoFencing fields
   bool? _isOnPath;
 
-  // Vibration duration
+  // --------------------------------------------------------------------------------------------------
+  //-------------------------------- Map Page Settings Fields ----------------------------------------
+  //--------------------------------- Now Actual Data Fields Below -----------------------------------------
+
+  late final Map<String, dynamic> _riderLocationData;
+  late final Map<String, dynamic> _assignmentsData;
+
+  late final String _userId;
+
+  late int _polylineId;
+
+  late String _srcAddr;
+  late String _destAddr;
+
+  late LatLng _srcCoord;
+  late LatLng _destCoord;
+
+  LatLng? _currentP;
+
+  // New fields
+  late Map<String, dynamic> _currentRoute;
+  late int _totalParcels;
+  late DateTime _startTime;
 
   @override
   void initState() {
     super.initState();
 
-    getLocationUpdates().then(
-      (_) => {
-        getPolylinePoints().then((polylinesData) {
-          generatePolyLineFromPoints(polylinesData);
-        }),
-      },
-    );
+    // Initialize the fields with the data passed from the previous page
+    _userId = widget.userId;
+    _riderLocationData = widget.riderLocationData;
+    _assignmentsData = widget.assignmentsData;
+    _totalParcels = _riderLocationData['polylines'].length;
+
+    // Now initialize the fields with the data
+    _setLocDataFieldsFromJson(_riderLocationData);
+
+    // Generate the polyline from the current route
+    generatePolyLineFromCurrentRoute();
+
+    // Start Location service
+    getLocationUpdates();
 
     // Check if the device has a vibrator
     Vibration.hasVibrator().then((value) {
@@ -105,7 +120,7 @@ class _MapPageState extends State<MapPage> {
         : Stack(
             children: [
               Visibility(
-                visible: _isOnPath != null,
+                visible: _isOnPath != null && _gMapController != null,
                 child: Positioned.fill(
                   child: EdgeWarningOverlay(
                     isOnPath: _isOnPath ?? true,
@@ -128,8 +143,8 @@ class _MapPageState extends State<MapPage> {
                       icon: BitmapDescriptor.defaultMarkerWithHue(
                           BitmapDescriptor.hueOrange),
                       position: _srcCoord,
-                      infoWindow: const InfoWindow(
-                        title: srcAddr,
+                      infoWindow: InfoWindow(
+                        title: _srcAddr,
                       ),
                     ),
                     Marker(
@@ -137,8 +152,8 @@ class _MapPageState extends State<MapPage> {
                       icon: BitmapDescriptor.defaultMarkerWithHue(
                           BitmapDescriptor.hueRed),
                       position: _destCoord,
-                      infoWindow: const InfoWindow(
-                        title: destAddr,
+                      infoWindow: InfoWindow(
+                        title: _destAddr,
                       ),
                     ),
                   },
@@ -181,9 +196,9 @@ class _MapPageState extends State<MapPage> {
                       mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: ReportEmergencyButton(),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _getEmergencyRequestButton(),
                         ),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -197,7 +212,8 @@ class _MapPageState extends State<MapPage> {
                       children: [
                         Visibility(
                           visible: _inProximity,
-                          child: renderProximityButton(context),
+                          child:
+                              renderProximityButton(context, onParcelDelivered),
                         ),
                       ],
                     ),
@@ -206,6 +222,63 @@ class _MapPageState extends State<MapPage> {
               ),
             ],
           );
+  }
+
+  // Update the _assignmentsData fields
+  void onParcelDelivered(Map<String, dynamic> result) {
+    // Update the assignmentsData with the result
+    print('');
+    print(result['success']);
+
+    if (result['success'] == false) {
+      return;
+    }
+
+    if (result['confirmation'] == true) {
+      print('confirmation is true');
+      print('sign: ${result['sign']}');
+      print('cnic: ${result['cnic']}');
+      print('ReceiverName: ${result['receiverName']}');
+      // Update the Firestore with the new status
+    } else if (result['unavailable'] == true) {
+      print('unavailable is true');
+      print('proof: ${result['proof']}');
+      // Update the Firestore with the new status
+    }
+
+    // Move on to the next parcel
+    setNextLocationDetails();
+  }
+
+  // Previous Parcel is delivered. Now onto the next one
+  void setNextLocationDetails() {
+    // Get the next location details from the riderLocation data
+    // and set the fields accordingly
+    // Also, generate the polyline from the current route
+    // and update the Firestore with the new polylineId
+
+    if (_polylineId + 1 < _totalParcels) {
+      _riderLocationData['polylineId'] = _polylineId + 1;
+      _setLocDataFieldsFromJson(_riderLocationData);
+      generatePolyLineFromCurrentRoute();
+      updateFirestorePolylineId(_polylineId);
+    }
+  }
+
+  void _setLocDataFieldsFromJson(Map<String, dynamic> data) {
+    _polylineId = data['polylineId'];
+    _currentRoute = data['polylines'][_polylineId];
+    _srcAddr = _currentRoute['source'];
+    _destAddr = _currentRoute['destination'];
+    _srcCoord = LatLng(
+      _currentRoute['sourceCoordinates']['lat'],
+      _currentRoute['sourceCoordinates']['long'],
+    );
+    _destCoord = LatLng(
+      _currentRoute['destinationCoordinates']['lat'],
+      _currentRoute['destinationCoordinates']['long'],
+    );
+    _startTime = DateTime.now();
   }
 
   Future<void> _cameraToPosition(LatLng pos) async {
@@ -279,6 +352,29 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
+  Future<void> updateFirestoreParcelStatus(
+      String status, Map<String, dynamic> result) async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    CollectionReference assignments = firestore.collection('assignments');
+
+    DocumentReference documentRef = assignments.doc(_userId);
+
+    documentRef.update({
+      'status': status,
+    });
+  }
+
+  Future<void> updateFirestorePolylineId(int newPolylineId) async {
+    final FirebaseFirestore firestore = FirebaseFirestore.instance;
+    CollectionReference locations = firestore.collection('riderLocation');
+
+    DocumentReference documentRef = locations.doc(_userId);
+
+    documentRef.update({
+      'polylineId': newPolylineId,
+    });
+  }
+
   Future<void> updateFirestoreLocation(LatLng currentLocation) async {
     final FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference locations = firestore.collection('riderLocation');
@@ -290,76 +386,29 @@ class _MapPageState extends State<MapPage> {
         'lat': currentLocation.latitude,
         'long': currentLocation.longitude,
       },
-      'lat': currentLocation.latitude,
-      'long': currentLocation.longitude,
     });
   }
 
-  Future<List<LatLng>> getPolylinePoints() async {
-    List<LatLng> polylineCoordinates = [];
-    PolylinePoints polylinePoints = PolylinePoints();
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      GEO_API_KEY,
-      PointLatLng(_srcCoord.latitude, _srcCoord.longitude),
-      PointLatLng(_destCoord.latitude, _destCoord.longitude),
-      travelMode: TravelMode.driving,
-    );
-    if (result.points.isNotEmpty) {
-      for (var point in result.points) {
-        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
-      }
-    } else {
-      print(result.errorMessage);
-    }
-    return polylineCoordinates;
-  }
+  void generatePolyLineFromCurrentRoute() async {
+    final List<dynamic> polylineData = _currentRoute['polyline'];
+    final List<LatLng> polylineCoordinates = polylineData
+        .map((e) => LatLng(e['lat'], e['long']))
+        .toList(growable: false);
 
-  // Future<dynamic> getPolylinePointsFromFirestore() async {
-  //   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-  //   CollectionReference polylines = firestore.collection('riderLocation');
-
-  //   DocumentReference documentRef = polylines.doc(_userId);
-
-  //   final doc = await documentRef.get();
-  //   final data = doc.data() as Map<String, dynamic>;
-  //   final List<dynamic> polylineData = data['polylines'];
-  //   return polylineData;
-  // }
-
-  void generatePolyLineFromPoints(List<LatLng> polylineCoordinates) async {
     PolylineId id = PolylineId(_polylineId.toString());
     Polyline polyline = Polyline(
         polylineId: id,
         color: Colors.blueAccent,
         points: polylineCoordinates,
         width: 8);
+
+    // Clear the previous polyline
+    polylines.clear();
+
     setState(() {
       polylines[id] = polyline;
     });
   }
-
-  // void generatePolylinesFromData(dynamic polylinesData) {
-  //   // PolylinesData is a list of maps
-  //   // Each map contains polyline (list of coordinates with lat long keys) and polylineId
-  //   for (var data in polylinesData) {
-  //     final polylineMap = data['polyline'];
-  //     final polylineId = data['polylineId'];
-  //     final List<LatLng> polylineCoordinates = [];
-  //     for (var coord in polylineMap) {
-  //       polylineCoordinates.add(LatLng(coord['lat'], coord['long']));
-  //     }
-  //     PolylineId id = PolylineId(polylineId.toString());
-  //     Polyline polyline = Polyline(
-  //         polylineId: id,
-  //         color: polylineId == 0 ? Colors.blueAccent : Colors.grey,
-  //         points: polylineCoordinates,
-  //         width: 8);
-
-  //     setState(() {
-  //       polylines[id] = polyline;
-  //     });
-  //   }
-  // }
 
   Widget _getNavButton() {
     return FloatingActionButton(
@@ -383,6 +432,27 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  Widget _getEmergencyRequestButton() {
+    return FloatingActionButton(
+      heroTag: null,
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            final request = _getEmergencyRequestTypeObject();
+            return EmergencyRequestDialog(request: request);
+          },
+        );
+      },
+      tooltip: 'Report Emergency',
+      child: const FaIcon(
+        FontAwesomeIcons.triangleExclamation,
+      ),
+    );
+  }
+
   Future<void> geoFencingFunction(
       LatLng origPoint, List<LatLng> origPolyline) async {
     mp.LatLng point = mp.LatLng(origPoint.latitude, origPoint.longitude);
@@ -394,7 +464,8 @@ class _MapPageState extends State<MapPage> {
         point, polyline, true,
         tolerance: geoFencingTolerance);
 
-    if (_isOnPath == null || _isOnPath != isOnPathResult) {
+    if (_gMapController != null &&
+        (_isOnPath == null || _isOnPath != isOnPathResult)) {
       // Set state of the app
       setState(() {
         _isOnPath = isOnPathResult;
@@ -443,7 +514,8 @@ class _MapPageState extends State<MapPage> {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
-                        return EmergencyRequestDialog();
+                        final request = _getEmergencyRequestTypeObject();
+                        return EmergencyRequestDialog(request: request);
                       },
                     );
                   },
@@ -455,5 +527,17 @@ class _MapPageState extends State<MapPage> {
         );
       }
     }
+  }
+
+  EmergencyRequestType _getEmergencyRequestTypeObject() {
+    return EmergencyRequestType(
+      riderId: _userId,
+      geoTag: _currentP!,
+      currentRoute: _currentRoute['polyline'],
+      allRoutes: _riderLocationData['polylines'],
+      srcLoc: _srcCoord,
+      destLoc: _destCoord,
+      polylineId: _polylineId,
+    );
   }
 }

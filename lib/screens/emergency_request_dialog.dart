@@ -4,15 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:route_optima_mobile_app/services/current_location.dart';
-import 'package:route_optima_mobile_app/models/location.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class EmergencyRequestDialog extends StatelessWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _descriptionController = TextEditingController();
   String _selectedType = 'Puncture'; // Default selected type
 
-  EmergencyRequestDialog({super.key});
+  EmergencyRequestDialog({required this.request, super.key});
+  EmergencyRequestType request;
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +78,7 @@ class EmergencyRequestDialog extends StatelessWidget {
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
-          return 'Please enter a description';
+          return 'Please enter some description';
         }
         return null;
       },
@@ -112,8 +112,11 @@ class EmergencyRequestDialog extends StatelessWidget {
             if (_formKey.currentState!.validate()) {
               final descriptionText = _descriptionController.text;
               final currentSelectedType = _selectedType;
+              // Update EmergencyRequestType object with the new data
+              request.type = currentSelectedType;
+              request.description = descriptionText;
               final requestFuture =
-                  _sendEmergencyRequest(descriptionText, currentSelectedType);
+                  _sendEmergencyRequest(request); // Send emergency request
               showRequestStatusDialog(context, requestFuture);
               _formKey.currentState!.reset();
             }
@@ -192,74 +195,72 @@ class EmergencyRequestDialog extends StatelessWidget {
   }
 
   // Function to send emergency report to Firestore
-  Future<void> _sendEmergencyRequest(
-      String descriptionText, String currentSelectedType) async {
-    // Get current timestamp
-    DateTime currentTime = DateTime.now();
+  Future<void> _sendEmergencyRequest(EmergencyRequestType request) async {
+    // Get Current Timestamp
+    request.timestamp = DateTime.now();
 
-    // Get device location
-    Location? locationObj = await _getLocation();
+    // Add emergency report data to Firestore in 'emergenctRequest' collection
+    await FirebaseFirestore.instance.collection('emergencyRequest').add(
+          request.toJson(),
+        );
+  }
+}
 
-    // Add emergency report data to Firestore
-    DocumentReference? locationRef;
-    if (locationObj != null) {
-      // Create a new document in the 'location' collection
-      DocumentReference locationDoc =
-          await FirebaseFirestore.instance.collection('location').add({
-        'lat': locationObj.lat,
-        'lng': locationObj.long,
-      });
-      locationRef =
-          locationDoc; // Reference to the newly created location document
-    }
+// New Emergency Request Type
+class EmergencyRequestType {
+  String? type;
+  String? description;
+  DateTime? timestamp;
+  final LatLng geoTag;
+  final int polylineId;
+  final List<dynamic> currentRoute;
+  final List<dynamic> allRoutes;
+  final String riderId;
+  final LatLng srcLoc;
+  final LatLng destLoc;
 
-    // Get the first subroute document in the 'subroutes' collection
-    DocumentSnapshot subrouteDoc = await FirebaseFirestore.instance
-        .collection('subroute')
-        .limit(1)
-        .get()
-        .then((value) => value.docs.first);
+  EmergencyRequestType({
+    this.type,
+    this.description,
+    this.timestamp,
+    required this.geoTag,
+    required this.currentRoute,
+    required this.allRoutes,
+    required this.riderId,
+    required this.srcLoc,
+    required this.destLoc,
+    required this.polylineId,
+  });
 
-    // Get the data from the subroute document
-    Map<String, dynamic> subrouteData =
-        subrouteDoc.data() as Map<String, dynamic>;
-
-    // Get the references to the rider, trip and route
-    DocumentReference tripRef = subrouteData['tripRef'];
-    DocumentReference riderRef = subrouteData['riderRef'];
-    DocumentReference subrouteRef = subrouteDoc.reference;
-
-    // Prepare data to be added in the 'emergency_reports' collection
-    Map<String, dynamic> emergencyData = {
-      'type': currentSelectedType,
-      'description': descriptionText,
-      'timestamp': currentTime,
-      'locationRef': locationObj != null ? locationRef : null,
-      'riderRef': riderRef,
-      'routeRef': subrouteRef,
-      'tripRef': tripRef,
+  Map<String, dynamic> latLngToJson(LatLng coord) {
+    return {
+      'lat': coord.latitude,
+      'long': coord.longitude,
     };
-
-    // Add emergency report data to Firestore in 'emergency_reports' collection
-    await FirebaseFirestore.instance
-        .collection('emergencyRequest')
-        .add(emergencyData);
   }
 
-  // Function to get device's current location using Geolocator package
-  Future<Location?> _getLocation() async {
-    // Get device's current location
-    final currentPos = await getCurrentLocation();
-
-    // Return null if location is not available
-    if (currentPos == null) {
-      return null;
-    }
-
-    // Return location object if location is available
-    return Location(
-      lat: currentPos.latitude.toString(),
-      long: currentPos.longitude.toString(),
-    );
+  // Function to convert EmergencyRequestType object to Json
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'description': description,
+      'timestamp': timestamp,
+      'geoTag': {
+        'lat': geoTag.latitude,
+        'long': geoTag.longitude,
+      },
+      'currentRoute': currentRoute,
+      'allRoutes': allRoutes,
+      'riderId': riderId,
+      'srcLoc': {
+        'lat': srcLoc.latitude,
+        'long': srcLoc.longitude,
+      },
+      'destLoc': {
+        'lat': destLoc.latitude,
+        'long': destLoc.longitude,
+      },
+      'polylineId': polylineId,
+    };
   }
 }

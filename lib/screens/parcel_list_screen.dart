@@ -73,7 +73,7 @@ class ParcelListPage extends StatelessWidget {
         future: fetchParcelsFromFirestore(parcelRefs),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           } else if (snapshot.hasError) {
@@ -81,7 +81,7 @@ class ParcelListPage extends StatelessWidget {
               child: Text('Error: ${snapshot.error}'),
             );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
+            return const Center(
               child: Text('No parcels found.'),
             );
           } else {
@@ -112,11 +112,18 @@ class ParcelListPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
         onPressed: () {
+          const tempUserId =
+              '46ACIEbnlM4N8dGez77b'; // Replace with actual user ID
+
           // Implement functionality for Start Trip button
           // Show Parcel Details
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const NavigationPage()),
+            MaterialPageRoute(
+              builder: (context) => const NavigationPage(
+                userId: tempUserId,
+              ),
+            ),
           );
         },
         label: Text(
@@ -185,7 +192,7 @@ class ParcelListPage extends StatelessWidget {
             children: [
               Text(
                 extractTime(parcel.dueTime),
-                style: TextStyle(
+                style: const TextStyle(
                     fontFamily: 'Roboto'), // Apply GoogleFont('Roboto')
               ),
             ],
@@ -201,21 +208,21 @@ class ParcelListPage extends StatelessWidget {
               children: [
                 Text(
                   parcel.name, // Replace with actual receiver name
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 16.0,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'Roboto', // Apply GoogleFont('Roboto')
                   ),
                 ),
-                SizedBox(height: 4.0),
+                const SizedBox(height: 4.0),
                 Row(
                   children: [
-                    FaIcon(
+                    const FaIcon(
                       FontAwesomeIcons.bagShopping,
                       size: 18.0,
                       color: Colors.grey,
                     ),
-                    SizedBox(width: 4.0),
+                    const SizedBox(width: 4.0),
                     Text(
                       '1 item',
                       style: TextStyle(
@@ -225,10 +232,10 @@ class ParcelListPage extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 4.0),
+                const SizedBox(height: 4.0),
                 Text(
                   parcel.address,
-                  style: TextStyle(
+                  style: const TextStyle(
                       fontFamily: 'Roboto'), // Apply GoogleFont('Roboto')
                 ),
               ],

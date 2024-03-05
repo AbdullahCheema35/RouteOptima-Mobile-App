@@ -1,10 +1,9 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:route_optima_mobile_app/gmapPages/upload_image.dart';
 import 'package:route_optima_mobile_app/gmapPages/upload_sign.dart';
 
-Widget renderProximityButton(context) {
+Widget renderProximityButton(
+    BuildContext context, void Function(Map<String, dynamic>) onDelivered) {
   return Expanded(
     child: Padding(
       padding: const EdgeInsets.all(8.0),
@@ -12,7 +11,7 @@ Widget renderProximityButton(context) {
         style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all(Colors.black)),
         onPressed: () {
-          _showDeliveryOptionsDialog(context);
+          _showDeliveryOptionsDialog(context, onDelivered);
         },
         child: const Text("Ready to Deliver?"),
       ),
@@ -20,7 +19,8 @@ Widget renderProximityButton(context) {
   );
 }
 
-Future<void> _showDeliveryOptionsDialog(context) async {
+Future<void> _showDeliveryOptionsDialog(BuildContext context,
+    void Function(Map<String, dynamic>) onDelivered) async {
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -31,45 +31,89 @@ Future<void> _showDeliveryOptionsDialog(context) async {
           children: [
             ElevatedButton(
               onPressed: () {
+                Map<String, dynamic> deliveryData = {
+                  'confirmation': false,
+                  'unavailable': true,
+                  'success': false,
+                };
+
                 // Open the camera to capture the unavailability proof
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const TakePictureScreen(),
+                  MaterialPageRoute<Map<String, dynamic>>(
+                    builder: (context) => const TakePictureScreen(
+                      title: "Capture Unavailability Proof",
+                    ),
                   ),
-                );
+                ).then((value) {
+                  if (value != null && value['success'] == true) {
+                    // Get the image path
+                    final downloadLink = value['link'];
+
+                    // Update the deliveryData
+                    deliveryData['proof'] = downloadLink;
+                    deliveryData['success'] = true;
+
+                    onDelivered(deliveryData);
+
+                    Navigator.pop(context);
+                  }
+                });
               },
               child: const Text("Capture Unavailability Proof"),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                Map<String, dynamic> deliveryData = {
+                  'confirmation': true,
+                  'unavailable': false,
+                  'success': false,
+                };
+
                 // Open the signature page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
+                  MaterialPageRoute<Map<String, dynamic>>(
                       builder: (context) => const SignaturePage()),
-                );
+                ).then((sigValue) {
+                  if (sigValue == null || sigValue['success'] == false) {
+                    return;
+                  } else if (sigValue['success'] == true) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute<Map<String, dynamic>>(
+                        builder: (context) => const TakePictureScreen(
+                          title: "Take CNIC Proof",
+                        ),
+                      ),
+                    ).then((cnicValue) {
+                      if (cnicValue != null && cnicValue['success'] == true) {
+                        // Get the signature image path
+                        final signatureLink = sigValue['link'];
+                        // Get the CNIC image path
+                        final cnicLink = cnicValue['link'];
+                        // Get the receiver's name
+                        final receiverName = sigValue['receiverName'];
+
+                        // Update the deliveryData
+                        deliveryData['sign'] = signatureLink;
+                        deliveryData['cnic'] = cnicLink;
+                        deliveryData['receiverName'] = receiverName;
+                        deliveryData['success'] = true;
+
+                        onDelivered(deliveryData);
+
+                        Navigator.pop(context);
+                      }
+                    });
+                  }
+                });
               },
-              child: const Text("Take Signature from Receiver"),
+              child: const Text("Confirm Delivery"),
             ),
           ],
         ),
       );
     },
   );
-}
-
-double calculateDistance(LatLng point1, LatLng point2) {
-  double lat1 = point1.latitude;
-  double lon1 = point1.longitude;
-  double lat2 = point2.latitude;
-  double lon2 = point2.longitude;
-
-  var p = 0.017453292519943295;
-  var c = cos;
-  var a = 0.5 -
-      c((lat2 - lat1) * p) / 2 +
-      c(lat1 * p) * c(lat2 * p) * (1 - c((lon2 - lon1) * p)) / 2;
-  double distKm = 12742 * asin(sqrt(a));
-  return distKm * 1000; // return distance in meters
 }
