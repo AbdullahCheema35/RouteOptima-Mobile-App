@@ -72,8 +72,10 @@ class _MapPageState extends State<MapPage> {
 
   // New fields
   late Map<String, dynamic> _currentRoute;
+  late List<dynamic> _allRoutes;
   late int _totalParcels;
   late DateTime _startTime;
+  bool _showAllRoutes = false;
 
   @override
   void initState() {
@@ -83,13 +85,14 @@ class _MapPageState extends State<MapPage> {
     _userId = widget.userId;
     _riderLocationData = widget.riderLocationData;
     _assignmentsData = widget.assignmentsData;
+    _allRoutes = _riderLocationData['polylines'];
     _totalParcels = _riderLocationData['polylines'].length;
 
     // Now initialize the fields with the data
     _setLocDataFieldsFromJson(_riderLocationData);
 
     // Generate the polyline from the current route
-    generatePolyLineFromCurrentRoute();
+    generateNextPolyLine();
 
     // Start Location service
     getLocationUpdates();
@@ -194,6 +197,31 @@ class _MapPageState extends State<MapPage> {
                   children: [
                     Row(
                       mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: FloatingActionButton(
+                            heroTag: null,
+                            backgroundColor: Colors.black,
+                            foregroundColor: Colors.white,
+                            onPressed: () {
+                              togglePolyline();
+                            },
+                            tooltip: 'Toggle Polyline',
+                            child: _showAllRoutes == true
+                                ? const FaIcon(
+                                    FontAwesomeIcons.mapMarker,
+                                  )
+                                : const FaIcon(
+                                    FontAwesomeIcons.layerGroup,
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.max,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Padding(
@@ -260,7 +288,7 @@ class _MapPageState extends State<MapPage> {
     if (_polylineId + 1 < _totalParcels) {
       _riderLocationData['polylineId'] = _polylineId + 1;
       _setLocDataFieldsFromJson(_riderLocationData);
-      generatePolyLineFromCurrentRoute();
+      generateNextPolyLine();
       updateFirestorePolylineId(_polylineId);
     }
   }
@@ -389,25 +417,93 @@ class _MapPageState extends State<MapPage> {
     });
   }
 
-  void generatePolyLineFromCurrentRoute() async {
-    final List<dynamic> polylineData = _currentRoute['polyline'];
-    final List<LatLng> polylineCoordinates = polylineData
-        .map((e) => LatLng(e['lat'], e['long']))
-        .toList(growable: false);
+  void togglePolyline() {
+    if (_showAllRoutes == true) {
+      // Change to single route
+      PolylineId id = PolylineId(_polylineId.toString());
+      final currentPolylineObj = polylines[id];
 
-    PolylineId id = PolylineId(_polylineId.toString());
-    Polyline polyline = Polyline(
-        polylineId: id,
-        color: Colors.blueAccent,
-        points: polylineCoordinates,
-        width: 8);
+      // Clear the previous polylines
+      polylines.clear();
 
-    // Clear the previous polyline
-    polylines.clear();
+      setState(() {
+        _showAllRoutes = !_showAllRoutes;
+        polylines[id] = currentPolylineObj!;
+      });
+    } else {
+      // Now change to all routes
+      polylines.clear();
 
-    setState(() {
-      polylines[id] = polyline;
-    });
+      for (int i = 0; i < _totalParcels; i++) {
+        final List<dynamic> polylineData =
+            _riderLocationData['polylines'][i]['polyline'];
+        final List<LatLng> polylineCoordinates = polylineData
+            .map((e) => LatLng(e['lat'], e['long']))
+            .toList(growable: false);
+        PolylineId id = PolylineId(i.toString());
+        Polyline polyline = Polyline(
+            polylineId: id,
+            color: i == _polylineId ? Colors.blueAccent : Colors.grey,
+            points: polylineCoordinates,
+            width: 8);
+
+        polylines[id] = polyline;
+      }
+
+      setState(() {
+        _showAllRoutes = !_showAllRoutes;
+        polylines;
+      });
+    }
+  }
+
+  void generateNextPolyLine() {
+    if (_showAllRoutes == false) {
+      // Clear the previous polyline
+      polylines.clear();
+
+      final List<dynamic> polylineData = _currentRoute['polyline'];
+      final List<LatLng> polylineCoordinates = polylineData
+          .map((e) => LatLng(e['lat'], e['long']))
+          .toList(growable: false);
+      PolylineId id = PolylineId(_polylineId.toString());
+      Polyline polyline = Polyline(
+          polylineId: id,
+          color: Colors.blueAccent,
+          points: polylineCoordinates,
+          width: 8);
+
+      // Show the polyline on the map
+      setState(() {
+        polylines[id] = polyline;
+      });
+    } else {
+      if (_polylineId > 0) {
+        // Update the last polyline to grey
+        // and current to blue
+        PolylineId lastId = PolylineId((_polylineId - 1).toString());
+        PolylineId currentId = PolylineId(_polylineId.toString());
+
+        // Create a new polyline object
+        final lastPolylineObj = Polyline(
+            polylineId: lastId,
+            color: Colors.grey,
+            points: polylines[lastId]!.points,
+            width: 8);
+        final currentPolylineObj = Polyline(
+            polylineId: currentId,
+            color: Colors.blueAccent,
+            points: polylines[currentId]!.points,
+            width: 8);
+
+        setState(() {
+          polylines[lastId] = lastPolylineObj;
+          polylines[currentId] = currentPolylineObj;
+        });
+      } else {
+        print("There is something wrong!");
+      }
+    }
   }
 
   Widget _getNavButton() {
