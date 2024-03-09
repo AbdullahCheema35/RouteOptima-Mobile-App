@@ -442,10 +442,12 @@ class _MapPageState extends State<MapPage> {
             .toList(growable: false);
         PolylineId id = PolylineId(i.toString());
         Polyline polyline = Polyline(
-            polylineId: id,
-            color: i == _polylineId ? Colors.blueAccent : Colors.grey,
-            points: polylineCoordinates,
-            width: 8);
+          polylineId: id,
+          color: i == _polylineId ? Colors.blueAccent : Colors.grey,
+          points: polylineCoordinates,
+          width: 8,
+          zIndex: i == _polylineId ? 1 : 0,
+        );
 
         polylines[id] = polyline;
       }
@@ -468,10 +470,12 @@ class _MapPageState extends State<MapPage> {
           .toList(growable: false);
       PolylineId id = PolylineId(_polylineId.toString());
       Polyline polyline = Polyline(
-          polylineId: id,
-          color: Colors.blueAccent,
-          points: polylineCoordinates,
-          width: 8);
+        polylineId: id,
+        color: Colors.blueAccent,
+        points: polylineCoordinates,
+        width: 8,
+        zIndex: 1,
+      );
 
       // Show the polyline on the map
       setState(() {
@@ -486,15 +490,18 @@ class _MapPageState extends State<MapPage> {
 
         // Create a new polyline object
         final lastPolylineObj = Polyline(
-            polylineId: lastId,
-            color: Colors.grey,
-            points: polylines[lastId]!.points,
-            width: 8);
+          polylineId: lastId,
+          color: Colors.grey,
+          points: polylines[lastId]!.points,
+          width: 8,
+        );
         final currentPolylineObj = Polyline(
-            polylineId: currentId,
-            color: Colors.blueAccent,
-            points: polylines[currentId]!.points,
-            width: 8);
+          polylineId: currentId,
+          color: Colors.blueAccent,
+          points: polylines[currentId]!.points,
+          width: 8,
+          zIndex: 1,
+        );
 
         setState(() {
           polylines[lastId] = lastPolylineObj;
