@@ -15,7 +15,7 @@ class _TripsPageState extends State<TripsPage> {
   final _drawerTileIndex = 0;
 
   final List<Widget> _tabs = [
-    AssignedTrips(),
+    const AssignedTrips(),
     CompletedTripsScreen(),
   ];
 

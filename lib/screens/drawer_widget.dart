@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:route_optima_mobile_app/screens/dashboard.dart';
+import 'package:route_optima_mobile_app/screens/rider_selection.dart';
 import 'package:route_optima_mobile_app/screens/trips_page.dart';
 
 Widget routeOptimaDrawerWidget(BuildContext context, int tileIndex) {
   // tileIndex: 0 -> ViewTrips
   // tileIndex: 1 -> Dashboard
+  // tileIndex: 2 -> Settings/RiderSelection
 
   return Drawer(
     child: ListView(
@@ -85,6 +87,17 @@ Widget routeOptimaDrawerWidget(BuildContext context, int tileIndex) {
                 fontSize: 16.0), // Apply GoogleFont('Roboto')
           ),
           selected: tileIndex == 2,
+          onTap: () {
+            Navigator.pop(context); // Close the drawer
+            // Navigate to Settings/RiderSelection screen if we're not already on that page
+            if (tileIndex != 2) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const RiderSelectionPage()),
+              );
+            }
+          },
         ),
         // Add more ListTiles for other drawer options
       ],
