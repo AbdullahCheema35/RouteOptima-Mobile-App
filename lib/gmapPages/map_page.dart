@@ -51,6 +51,8 @@ class _MapPageState extends State<MapPage> {
   // GeoFencing fields
   bool? _isOnPath;
 
+  Map<int, Circle> circles = {};
+
   // --------------------------------------------------------------------------------------------------
   //-------------------------------- Map Page Settings Fields ----------------------------------------
   //--------------------------------- Now Actual Data Fields Below -----------------------------------------
@@ -144,7 +146,7 @@ class _MapPageState extends State<MapPage> {
                     Marker(
                       markerId: const MarkerId("srcLoc"),
                       icon: BitmapDescriptor.defaultMarkerWithHue(
-                          BitmapDescriptor.hueOrange),
+                          BitmapDescriptor.hueGreen),
                       position: _srcCoord,
                       infoWindow: InfoWindow(
                         title: _srcAddr,
@@ -160,15 +162,7 @@ class _MapPageState extends State<MapPage> {
                       ),
                     ),
                   },
-                  circles: {
-                    Circle(
-                      circleId: const CircleId("currLocCircle"),
-                      center: _currentP!,
-                      radius: proximityThreshold,
-                      fillColor: Colors.blueAccent.withOpacity(0.2),
-                      strokeWidth: 0,
-                    ),
-                  },
+                  circles: Set<Circle>.of(circles.values),
                   polylines: Set<Polyline>.of(polylines.values),
                   zoomGesturesEnabled: true,
                   zoomControlsEnabled: false,
@@ -363,6 +357,15 @@ class _MapPageState extends State<MapPage> {
       setState(() {
         _currentP = newP;
         _inProximity = distance <= proximityThreshold;
+        if (circles.isEmpty) {
+          circles[0] = Circle(
+            circleId: const CircleId("0"),
+            center: _currentP!,
+            radius: proximityThreshold,
+            fillColor: Colors.blue.withOpacity(0.2),
+            strokeWidth: 0,
+          );
+        }
       });
 
       // Check if the user is following the polyline path
@@ -426,9 +429,14 @@ class _MapPageState extends State<MapPage> {
       // Clear the previous polylines
       polylines.clear();
 
+      // Store the currentLocationCircle (firstCircle) in a temp variable and clear the rest of circles
+      final currentLocationCircle = circles[0];
+      circles.clear();
+
       setState(() {
         _showAllRoutes = !_showAllRoutes;
         polylines[id] = currentPolylineObj!;
+        circles[0] = currentLocationCircle!;
       });
     } else {
       // Now change to all routes
@@ -449,11 +457,27 @@ class _MapPageState extends State<MapPage> {
           zIndex: i == _polylineId ? 1 : 0,
         );
 
+        // Create circles on parcel locations
+        CircleId circleId = CircleId((i + 1).toString());
+        Circle circle = Circle(
+          circleId: circleId,
+          center: LatLng(
+            _riderLocationData['polylines'][i]['destinationCoordinates']['lat'],
+            _riderLocationData['polylines'][i]['destinationCoordinates']
+                ['long'],
+          ),
+          radius: proximityThreshold,
+          fillColor: Colors.black87,
+          strokeWidth: 0,
+        );
+
+        circles[i + 1] = circle;
         polylines[id] = polyline;
       }
 
       setState(() {
         _showAllRoutes = !_showAllRoutes;
+        circles;
         polylines;
       });
     }
