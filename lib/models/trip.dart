@@ -62,6 +62,7 @@ class Trip {
   int year;
   int hour;
   int minute;
+  List? parcels;
 
   Trip({
     required this.id,

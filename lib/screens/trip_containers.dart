@@ -3,13 +3,14 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:route_optima_mobile_app/conversion/time.dart';
 import 'package:route_optima_mobile_app/conversion/week_day.dart';
+import 'package:route_optima_mobile_app/models/parcel.dart';
 import 'package:route_optima_mobile_app/models/trip.dart';
 import 'package:route_optima_mobile_app/screens/parcel_list_screen.dart';
 import 'package:route_optima_mobile_app/conversion/month.dart';
 
 Container getNextMonthContainer(
     BuildContext context, List<Trip> trips, int index,
-    {bool isAssignedList = true}) {
+    {bool isAssignedList = true, List<Parcel>? parcels}) {
   return Container(
     width: double.infinity,
     height: 154.0,
@@ -34,7 +35,7 @@ Container getNextMonthContainer(
         ),
         // Normal trip container
         getNormalContainer(context, trips, index, false,
-            isAssignedList: isAssignedList),
+            isAssignedList: isAssignedList, parcels: parcels),
       ],
     ),
   );
@@ -42,7 +43,7 @@ Container getNextMonthContainer(
 
 Container getNormalContainer(
     BuildContext context, List<Trip> trips, int index, bool sameDate,
-    {bool isAssignedList = true}) {
+    {bool isAssignedList = true, List<Parcel>? parcels}) {
   return Container(
     width: double.infinity,
     height: 90.0,
@@ -134,7 +135,9 @@ Container getNormalContainer(
                             width: 8.0,
                           ),
                           Text(
-                            '${trips[index].parcelRefs.length} Parcels',
+                            parcels == null
+                                ? '${trips[index].parcelRefs.length} Parcels'
+                                : '${parcels.length} Parcels',
                             style: GoogleFonts.roboto(
                               color: index == 0 && isAssignedList
                                   ? Colors.white
@@ -158,6 +161,7 @@ Container getNormalContainer(
                             MaterialPageRoute(
                               builder: (context) => ParcelListPage(
                                 parcelRefs: trips[index].parcelRefs,
+                                parcels: parcels,
                               ),
                             ),
                           );

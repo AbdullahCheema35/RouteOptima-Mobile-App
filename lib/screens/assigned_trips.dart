@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:route_optima_mobile_app/models/parcel.dart';
 import 'package:route_optima_mobile_app/models/trip.dart';
 import 'package:route_optima_mobile_app/screens/no_trips_assigned.dart';
 import 'package:route_optima_mobile_app/screens/trip_containers.dart';
@@ -23,7 +24,9 @@ class AssignedTrips extends ConsumerWidget {
           final trip =
               createTempTrip(assignmentData.data() as Map<String, dynamic>);
           final trips = [trip];
-          return getNextMonthContainer(context, trips, index);
+          final parcels =
+              createParcelListFromResponse(assignmentData['parcels']);
+          return getNextMonthContainer(context, trips, index, parcels: parcels);
         }
       },
       loading: () => const Center(
@@ -91,4 +94,43 @@ DateTime parseDateTime(String dateTimeString) {
 
   // Create DateTime object
   return DateTime(year, month, day, hour, minute);
+}
+
+List<Parcel> createParcelListFromResponse(List<dynamic> responseList) {
+  return responseList.map((responseMap) {
+    // Extract required fields
+    final name = responseMap['receiver']['name'];
+    final address = responseMap['receiver']['address'];
+    final phone = responseMap['receiver']['phone'];
+    final dueTime = responseMap['due_time'];
+    final status = responseMap['status'];
+
+    // Parse dueTime into ISO format and extract date components
+    final parsedDueTime = parseDateTime("3/18/2024 " + dueTime);
+    final dueDate = parsedDueTime.day;
+    final dueDay = parsedDueTime.weekday;
+    final dueMonth = parsedDueTime.month;
+    final dueYear = parsedDueTime.year;
+    final dueHour = parsedDueTime.hour;
+    final dueMinute = parsedDueTime.minute;
+
+    // Assuming "receivedBy" is not provided by the API, set it to null
+    final receivedBy = "null";
+
+    return Parcel(
+      name: name,
+      address: address,
+      phone: phone,
+      dueTime: parsedDueTime.toIso8601String(),
+      deliveredTime: parsedDueTime.toIso8601String(),
+      receivedBy: receivedBy,
+      status: status,
+      dueDate: dueDate,
+      dueDay: dueDay,
+      dueMonth: dueMonth,
+      dueYear: dueYear,
+      dueHour: dueHour,
+      dueMinute: dueMinute,
+    );
+  }).toList();
 }

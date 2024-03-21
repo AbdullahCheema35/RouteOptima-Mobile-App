@@ -9,30 +9,12 @@ import 'package:route_optima_mobile_app/screens/navigation.dart';
 import 'package:route_optima_mobile_app/services/line_painter.dart';
 
 class ParcelListPage extends StatelessWidget {
-  // // Example list of parcels
-  // final List<Map<String, dynamic>> parcels = [
-  //   {
-  //     'delivered': true,
-  //     'time': '11:30 AM',
-  //   },
-  //   {
-  //     'delivered': false,
-  //     'time': '12:00 PM',
-  //   },
-  //   {
-  //     'delivered': true,
-  //     'time': '01:00 PM',
-  //   },
-  //   {
-  //     'delivered': false,
-  //     'time': '02:00 PM',
-  //   },
-  //   // Add more parcels as needed
-  // ];
+  const ParcelListPage(
+      {required this.parcelRefs, this.parcels, this.userId, super.key});
 
   final List<DocumentReference> parcelRefs;
-
-  const ParcelListPage({required this.parcelRefs, super.key});
+  final List<Parcel>? parcels;
+  final String? userId;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +52,10 @@ class ParcelListPage extends StatelessWidget {
       ),
       backgroundColor: Colors.white,
       body: FutureBuilder<List<Parcel>>(
-        future: fetchParcelsFromFirestore(parcelRefs),
+        future: parcels != null
+            ? Future.value(
+                parcels!) // If parcels are provided, use them directly
+            : fetchParcelsFromFirestore(parcelRefs),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -99,35 +84,28 @@ class ParcelListPage extends StatelessWidget {
           }
         },
       ),
-
-      // Padding(
-      //   padding: const EdgeInsets.all(8.0),
-      //   child: ListView.builder(
-      //     itemCount: parcels.length,
-      //     itemBuilder: (BuildContext context, int index) {
-      //       return buildParcelContainer(context, parcels[index], index);
-      //     },
-      //   ),
-      // ),
       floatingActionButton: FloatingActionButton.extended(
         heroTag: null,
         onPressed: () {
-          const tempUserId =
-              '46ACIEbnlM4N8dGez77b'; // Replace with actual user ID
+          // if (userId == null) {
+          //   return;
+          // }
+
+          const userId = '46ACIEbnlM4N8dGez77b'; // Replace with actual user ID
 
           // Implement functionality for Start Trip button
           // Show Parcel Details
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const NavigationPage(
-                userId: tempUserId,
+              builder: (context) => NavigationPage(
+                userId: userId!,
               ),
             ),
           );
         },
         label: Text(
-          'Start Trip',
+          'Show Path',
           style: GoogleFonts.roboto(fontWeight: FontWeight.w600),
         ),
         // FontAwesome Icon replaced here
