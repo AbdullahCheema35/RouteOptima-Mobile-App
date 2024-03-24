@@ -354,18 +354,19 @@ class _MapPageState extends State<MapPage> {
       // Animate camera to new position
       _cameraToPosition(newP);
 
+      // Update current location's circle on the map
+      final updatedCircle = Circle(
+        circleId: const CircleId("0"),
+        center: newP,
+        radius: proximityThreshold,
+        fillColor: Colors.blue.withOpacity(0.2),
+        strokeWidth: 0,
+      );
+
       setState(() {
         _currentP = newP;
         _inProximity = distance <= proximityThreshold;
-        if (circles.isEmpty) {
-          circles[0] = Circle(
-            circleId: const CircleId("0"),
-            center: _currentP!,
-            radius: proximityThreshold,
-            fillColor: Colors.blue.withOpacity(0.2),
-            strokeWidth: 0,
-          );
-        }
+        circles[0] = updatedCircle;
       });
 
       // Check if the user is following the polyline path
