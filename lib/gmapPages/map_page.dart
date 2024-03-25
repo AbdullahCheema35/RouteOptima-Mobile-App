@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:route_optima_mobile_app/consts/map_consts.dart';
 import 'package:route_optima_mobile_app/gmapPages/edge_warning_overlay.dart';
+import 'package:route_optima_mobile_app/gmapPages/open_gmap.dart';
 import 'package:route_optima_mobile_app/gmapPages/proximity_button.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -191,8 +192,12 @@ class _MapPageState extends State<MapPage> {
                   children: [
                     Row(
                       mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: _getOpenGoogleMapsButton(),
+                        ),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: FloatingActionButton(
@@ -551,11 +556,12 @@ class _MapPageState extends State<MapPage> {
       },
       tooltip: 'Show Current Location',
       child: _autoCameraFocusEnabled
-          ? const FaIcon(
-              FontAwesomeIcons.locationArrow,
+          ? // Material Design Icon
+          const Icon(
+              Icons.location_disabled_outlined,
             )
-          : const FaIcon(
-              FontAwesomeIcons.locationCrosshairs,
+          : const Icon(
+              Icons.my_location_outlined,
             ),
     );
   }
@@ -577,6 +583,22 @@ class _MapPageState extends State<MapPage> {
       tooltip: 'Report Emergency',
       child: const FaIcon(
         FontAwesomeIcons.triangleExclamation,
+      ),
+    );
+  }
+
+  Widget _getOpenGoogleMapsButton() {
+    return FloatingActionButton(
+      heroTag: null,
+      backgroundColor: Colors.black,
+      foregroundColor: Colors.white,
+      onPressed: () {
+        // Open Google Maps with the source and destination coordinates
+        openGoogleMaps(_destCoord.latitude, _destCoord.longitude);
+      },
+      tooltip: 'Open Google Maps',
+      child: const FaIcon(
+        FontAwesomeIcons.locationArrow,
       ),
     );
   }

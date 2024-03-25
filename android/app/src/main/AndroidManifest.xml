@@ -14,6 +14,9 @@
     <!-- Add these lines for Vibration Permission -->
     <uses-permission android:name="android.permission.VIBRATE"/>
 
+    <!-- Add these lines for Internet Permission (To Open Google Maps application) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
    <application
         android:label="route_optima_mobile_app"
         android:name="${applicationName}"
