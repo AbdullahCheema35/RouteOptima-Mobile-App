@@ -5,10 +5,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:route_optima_mobile_app/consts/map_consts.dart';
 import 'package:route_optima_mobile_app/gmapPages/edge_warning_overlay.dart';
+import 'package:route_optima_mobile_app/gmapPages/emergency_request_button.dart';
+import 'package:route_optima_mobile_app/gmapPages/firestore_services.dart';
+import 'package:route_optima_mobile_app/gmapPages/nav_button.dart';
 import 'package:route_optima_mobile_app/gmapPages/open_gmap.dart';
 import 'package:route_optima_mobile_app/gmapPages/proximity_button.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:route_optima_mobile_app/screens/emergency_request_dialog.dart';
 import 'package:maps_toolkit/maps_toolkit.dart' as mp;
 import 'package:vibration/vibration.dart';
@@ -40,6 +42,7 @@ class _MapPageState extends State<MapPage> {
   double _zoom = defaultZoom;
 
   Map<PolylineId, Polyline> polylines = {};
+  Map<int, Circle> circles = {};
 
   bool _inProximity = false;
 
@@ -51,8 +54,6 @@ class _MapPageState extends State<MapPage> {
 
   // GeoFencing fields
   bool? _isOnPath;
-
-  Map<int, Circle> circles = {};
 
   // --------------------------------------------------------------------------------------------------
   //-------------------------------- Map Page Settings Fields ----------------------------------------
@@ -89,7 +90,7 @@ class _MapPageState extends State<MapPage> {
     _riderLocationData = widget.riderLocationData;
     _assignmentsData = widget.assignmentsData;
     _allRoutes = _riderLocationData['polylines'];
-    _totalParcels = _riderLocationData['polylines'].length;
+    _totalParcels = _allRoutes.length;
 
     // Now initialize the fields with the data
     _setLocDataFieldsFromJson(_riderLocationData);
@@ -140,7 +141,7 @@ class _MapPageState extends State<MapPage> {
                     _gMapController = controller;
                   }),
                   initialCameraPosition: CameraPosition(
-                    target: _srcCoord,
+                    target: _currentP!,
                     zoom: defaultZoom,
                   ),
                   markers: {
@@ -196,7 +197,9 @@ class _MapPageState extends State<MapPage> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: _getOpenGoogleMapsButton(),
+                          child: GoogleMapsButton(
+                            destCoord: _destCoord,
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -225,11 +228,16 @@ class _MapPageState extends State<MapPage> {
                       children: [
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: _getEmergencyRequestButton(),
+                          child: EmergencyRequestButton(
+                            request: _getEmergencyRequestTypeObject(),
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: _getNavButton(),
+                          child: NavButton(
+                            autoCameraFocusEnabled: _autoCameraFocusEnabled,
+                            cameraToPositionCallback: autoCameraFocusToggled,
+                          ),
                         ),
                       ],
                     ),
@@ -240,7 +248,7 @@ class _MapPageState extends State<MapPage> {
                         Visibility(
                           visible: _inProximity,
                           child:
-                              renderProximityButton(context, onParcelDelivered),
+                              ProximityButton(onDelivered: onParcelDelivered),
                         ),
                       ],
                     ),
@@ -284,11 +292,34 @@ class _MapPageState extends State<MapPage> {
     // Also, generate the polyline from the current route
     // and update the Firestore with the new polylineId
 
-    if (_polylineId + 1 < _totalParcels) {
-      _riderLocationData['polylineId'] = _polylineId + 1;
+    _polylineId += 1;
+
+    if (_polylineId < _totalParcels) {
+      // Now set the next parcel location details
+      _riderLocationData['polylineId'] = _polylineId;
       _setLocDataFieldsFromJson(_riderLocationData);
       generateNextPolyLine();
-      updateFirestorePolylineId(_polylineId);
+      updateFirestorePolylineId(_polylineId, _userId);
+    } else {
+      // All parcels have been delivered
+      // Show a dialog to the user
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('All Parcels Delivered'),
+            content: const Text('All parcels have been delivered.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -383,46 +414,9 @@ class _MapPageState extends State<MapPage> {
       // Update Firestore with current location if the interval has passed
       if (position.timestamp.millisecondsSinceEpoch - lastDbUpdateStamp >
           locationUploadInterval) {
-        updateFirestoreLocation(_currentP!);
+        updateFirestoreLocation(_currentP!, _userId);
         lastDbUpdateStamp = position.timestamp.millisecondsSinceEpoch;
       }
-    });
-  }
-
-  Future<void> updateFirestoreParcelStatus(
-      String status, Map<String, dynamic> result) async {
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    CollectionReference assignments = firestore.collection('assignments');
-
-    DocumentReference documentRef = assignments.doc(_userId);
-
-    documentRef.update({
-      'status': status,
-    });
-  }
-
-  Future<void> updateFirestorePolylineId(int newPolylineId) async {
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    CollectionReference locations = firestore.collection('riderLocation');
-
-    DocumentReference documentRef = locations.doc(_userId);
-
-    documentRef.update({
-      'polylineId': newPolylineId,
-    });
-  }
-
-  Future<void> updateFirestoreLocation(LatLng currentLocation) async {
-    final FirebaseFirestore firestore = FirebaseFirestore.instance;
-    CollectionReference locations = firestore.collection('riderLocation');
-
-    DocumentReference documentRef = locations.doc(_userId);
-
-    documentRef.update({
-      'riderCoordinates': {
-        'lat': currentLocation.latitude,
-        'long': currentLocation.longitude,
-      },
     });
   }
 
@@ -449,8 +443,7 @@ class _MapPageState extends State<MapPage> {
       polylines.clear();
 
       for (int i = 0; i < _totalParcels; i++) {
-        final List<dynamic> polylineData =
-            _riderLocationData['polylines'][i]['polyline'];
+        final List<dynamic> polylineData = _allRoutes[i]['polyline'];
         final List<LatLng> polylineCoordinates = polylineData
             .map((e) => LatLng(e['lat'], e['long']))
             .toList(growable: false);
@@ -468,9 +461,8 @@ class _MapPageState extends State<MapPage> {
         Circle circle = Circle(
           circleId: circleId,
           center: LatLng(
-            _riderLocationData['polylines'][i]['destinationCoordinates']['lat'],
-            _riderLocationData['polylines'][i]['destinationCoordinates']
-                ['long'],
+            _allRoutes[i]['destinationCoordinates']['lat'],
+            _allRoutes[i]['destinationCoordinates']['long'],
           ),
           radius: proximityThreshold,
           fillColor: Colors.black87,
@@ -543,64 +535,12 @@ class _MapPageState extends State<MapPage> {
     }
   }
 
-  Widget _getNavButton() {
-    return FloatingActionButton(
-      heroTag: null,
-      backgroundColor: Colors.black,
-      foregroundColor: const Color.fromARGB(255, 239, 225, 225),
-      onPressed: () {
-        setState(() {
-          _autoCameraFocusEnabled = !_autoCameraFocusEnabled;
-        });
-        _cameraToPosition(_currentP ?? _srcCoord);
-      },
-      tooltip: 'Show Current Location',
-      child: _autoCameraFocusEnabled
-          ? // Material Design Icon
-          const Icon(
-              Icons.location_disabled_outlined,
-            )
-          : const Icon(
-              Icons.my_location_outlined,
-            ),
-    );
-  }
-
-  Widget _getEmergencyRequestButton() {
-    return FloatingActionButton(
-      heroTag: null,
-      backgroundColor: Colors.black,
-      foregroundColor: Colors.white,
-      onPressed: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            final request = _getEmergencyRequestTypeObject();
-            return EmergencyRequestDialog(request: request);
-          },
-        );
-      },
-      tooltip: 'Report Emergency',
-      child: const FaIcon(
-        FontAwesomeIcons.triangleExclamation,
-      ),
-    );
-  }
-
-  Widget _getOpenGoogleMapsButton() {
-    return FloatingActionButton(
-      heroTag: null,
-      backgroundColor: Colors.black,
-      foregroundColor: Colors.white,
-      onPressed: () {
-        // Open Google Maps with the source and destination coordinates
-        openGoogleMaps(_destCoord.latitude, _destCoord.longitude);
-      },
-      tooltip: 'Open Google Maps',
-      child: const FaIcon(
-        FontAwesomeIcons.locationArrow,
-      ),
-    );
+  // Pressed the nav button
+  void autoCameraFocusToggled() {
+    setState(() {
+      _autoCameraFocusEnabled = !_autoCameraFocusEnabled;
+    });
+    _cameraToPosition(_currentP ?? _srcCoord);
   }
 
   Future<void> geoFencingFunction(
@@ -684,7 +624,7 @@ class _MapPageState extends State<MapPage> {
       riderId: _userId,
       geoTag: _currentP!,
       currentRoute: _currentRoute['polyline'],
-      allRoutes: _riderLocationData['polylines'],
+      allRoutes: _allRoutes,
       srcLoc: _srcCoord,
       destLoc: _destCoord,
       polylineId: _polylineId,

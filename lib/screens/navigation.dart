@@ -43,11 +43,8 @@ class NavigationPage extends StatelessWidget {
         ),
       ),
       backgroundColor: Colors.white,
-      body: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance
-            .collection('riderLocation')
-            .doc(userId)
-            .get(),
+      body: FutureBuilder<List<dynamic>>(
+        future: getDataFromFirebase(userId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // While data is loading, display a loading indicator
@@ -57,16 +54,30 @@ class NavigationPage extends StatelessWidget {
             return Text('Error: ${snapshot.error}');
           } else {
             // Data is successfully loaded, pass it to MapPage
-            Map<String, dynamic> locationData =
-                snapshot.data!.data() as Map<String, dynamic>;
+            final Map<String, dynamic> locationData =
+                snapshot.data![0].data() as Map<String, dynamic>;
+            final Map<String, dynamic> assignmentsData =
+                snapshot.data![1].data() as Map<String, dynamic>;
             return MapPage(
               userId: userId,
               riderLocationData: locationData,
-              assignmentsData: const {},
+              assignmentsData: assignmentsData,
             );
           }
         },
       ),
     );
+  }
+
+  Future<List<dynamic>> getDataFromFirebase(String userId) async {
+    final locationDocSnapshot = FirebaseFirestore.instance
+        .collection('riderLocation')
+        .doc(userId)
+        .get();
+    final assignmentDocSnapshot =
+        FirebaseFirestore.instance.collection('assignments').doc(userId).get();
+
+    // await on both Futures to get the data
+    return await Future.wait([locationDocSnapshot, assignmentDocSnapshot]);
   }
 }

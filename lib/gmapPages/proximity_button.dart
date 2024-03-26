@@ -2,21 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:route_optima_mobile_app/gmapPages/upload_image.dart';
 import 'package:route_optima_mobile_app/gmapPages/upload_sign.dart';
 
-Widget renderProximityButton(
-    BuildContext context, void Function(Map<String, dynamic>) onDelivered) {
-  return Expanded(
-    child: Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: ElevatedButton(
-        style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(Colors.black)),
-        onPressed: () {
-          _showDeliveryOptionsDialog(context, onDelivered);
-        },
-        child: const Text("Ready to Deliver?"),
+class ProximityButton extends StatelessWidget {
+  const ProximityButton({required this.onDelivered, super.key});
+
+  // Store the passed callback function
+  final void Function(Map<String, dynamic>) onDelivered;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ElevatedButton(
+          style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(Colors.black)),
+          onPressed: () {
+            _showDeliveryOptionsDialog(context, onDelivered);
+          },
+          child: const Text("Ready to Deliver?"),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 Future<void> _showDeliveryOptionsDialog(BuildContext context,
