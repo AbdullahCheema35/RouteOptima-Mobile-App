@@ -17,6 +17,9 @@
     <!-- Add these lines for Internet Permission (To Open Google Maps application) -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Add these lines for Call Permission (To Call the Client) -->
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
+
    <application
         android:label="route_optima_mobile_app"
         android:name="${applicationName}"

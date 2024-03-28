@@ -3,6 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:route_optima_mobile_app/conversion/time.dart';
 import 'package:route_optima_mobile_app/models/parcel.dart';
+import 'package:route_optima_mobile_app/screens/point_address.dart';
+import 'package:route_optima_mobile_app/utility/dialer.dart';
+import 'package:route_optima_mobile_app/utility/sms.dart';
 
 class ParcelDetailsScreen extends StatelessWidget {
   const ParcelDetailsScreen(this.parcel, {super.key});
@@ -113,6 +116,22 @@ class ParcelDetailsScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         // Handle map button pressed
+
+                        if (parcel.lat == null || parcel.long == null) {
+                          // Handle error
+                          return;
+                        }
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AddressPin(
+                              lat: parcel.lat!,
+                              long: parcel.long!,
+                              address: parcel.address,
+                            ),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         fixedSize: const Size.square(60.0),
@@ -145,6 +164,7 @@ class ParcelDetailsScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         // Handle phone call button pressed
+                        launchDialer(parcel.phone);
                       },
                       style: ElevatedButton.styleFrom(
                         fixedSize: const Size.square(60.0),
@@ -177,6 +197,7 @@ class ParcelDetailsScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {
                         // Handle message button pressed
+                        launchSMS(parcel.phone);
                       },
                       style: ElevatedButton.styleFrom(
                         fixedSize: const Size.square(60.0),

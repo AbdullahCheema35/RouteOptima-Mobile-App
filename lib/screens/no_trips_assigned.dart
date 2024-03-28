@@ -12,7 +12,7 @@ class NoTripsAssigned extends StatelessWidget {
         const SizedBox(
           height: 100,
         ),
-        Container(
+        SizedBox(
           width: double.infinity,
           height: 300,
           child: Stack(

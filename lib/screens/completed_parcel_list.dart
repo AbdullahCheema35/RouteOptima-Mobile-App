@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:route_optima_mobile_app/models/parcel.dart';
-import 'package:route_optima_mobile_app/presentation/build_parcel_container.dart';
+import 'package:route_optima_mobile_app/utility/build_parcel_container.dart';
 
 class CompletedParceslList extends StatelessWidget {
   const CompletedParceslList({required this.parcelRefs, super.key});

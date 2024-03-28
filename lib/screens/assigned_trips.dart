@@ -104,6 +104,8 @@ List<Parcel> createParcelListFromResponse(List<dynamic> responseList) {
     final phone = responseMap['receiver']['phone'];
     final dueTime = responseMap['due_time'];
     final status = responseMap['status'];
+    final lat = responseMap['location']['lat'];
+    final long = responseMap['location']['long'];
 
     // Parse dueTime into ISO format and extract date components
     final parsedDueTime = parseDateTime("3/18/2024 $dueTime");
@@ -131,6 +133,8 @@ List<Parcel> createParcelListFromResponse(List<dynamic> responseList) {
       dueYear: dueYear,
       dueHour: dueHour,
       dueMinute: dueMinute,
+      lat: lat,
+      long: long,
     );
   }).toList();
 }

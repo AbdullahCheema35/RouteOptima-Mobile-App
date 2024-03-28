@@ -14,6 +14,8 @@ class Parcel {
   int dueYear;
   int dueHour;
   int dueMinute;
+  double? lat;
+  double? long;
 
   Parcel({
     required this.name,
@@ -29,6 +31,8 @@ class Parcel {
     required this.dueYear,
     required this.dueHour,
     required this.dueMinute,
+    this.lat,
+    this.long,
   });
 
   factory Parcel.fromFirestore(Map<String, dynamic> json) {

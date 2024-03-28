@@ -14,7 +14,7 @@ Widget buildParcelContainer(
     child: Row(
       children: [
         // Left column with circles and lines
-        Container(
+        SizedBox(
           width: 40.0, // Width for the left column
           child: CustomPaint(
             painter: LinePainter(

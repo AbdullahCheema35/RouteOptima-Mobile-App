@@ -29,7 +29,7 @@ class TripsPageState extends State<TripsPage> {
         foregroundColor: Colors.black,
         elevation: 0,
         title: Text(
-          'View Trips',
+          _currentIndex == 0 ? 'Today\'s Trip' : 'Past Trips',
           style:
               GoogleFonts.roboto(fontSize: 24.0, fontWeight: FontWeight.w600),
         ),
