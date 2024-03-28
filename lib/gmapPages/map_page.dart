@@ -241,6 +241,31 @@ class _MapPageState extends ConsumerState<MapPage> {
                   ],
                 ),
               ),
+
+              // Circular button in the top left corner
+              Positioned(
+                top: 20.0,
+                left: 20.0,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    width: 35.0,
+                    height: 35.0,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Center(
+                      child: FaIcon(
+                        Icons.arrow_back_sharp,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             ],
           );
   }

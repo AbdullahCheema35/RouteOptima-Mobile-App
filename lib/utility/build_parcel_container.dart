@@ -41,7 +41,9 @@ Widget buildParcelContainer(
                           : parcel.status == 'unavailable'
                               ? FontAwesomeIcons.xmark
                               : FontAwesomeIcons.solidCircle,
-                      color: Colors.white,
+                      color: isCurrentParcel(parcel, idx, parcels)
+                          ? Colors.amber[400]
+                          : Colors.white,
                       size: 16.0,
                     ),
                   ),
@@ -127,4 +129,23 @@ Widget buildParcelContainer(
       ],
     ),
   );
+}
+
+bool isCurrentParcel(Parcel parcel, int idx, List<Parcel> parcels) {
+  if (parcel.status != 'pending') {
+    return false;
+  }
+  // It means current parcel's status is pending
+
+  // Check if the current parcel is the first parcel
+  if (idx == 0) {
+    return true;
+  }
+
+  // Check if the previous parcel is not pending
+  if (idx - 1 > 0 && parcels[idx - 1].status != 'pending') {
+    return true;
+  }
+
+  return false;
 }
