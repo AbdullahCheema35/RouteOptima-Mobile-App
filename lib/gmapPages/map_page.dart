@@ -400,6 +400,8 @@ class _MapPageState extends ConsumerState<MapPage> {
   }
 
   void togglePolyline() {
+    print("Show all routes: $_showAllRoutes");
+
     if (_showAllRoutes == true) {
       // Change to single route
       PolylineId id = PolylineId(_polylineId.toString());
@@ -478,7 +480,10 @@ class _MapPageState extends ConsumerState<MapPage> {
       // Update the markers
       final srcMarker = Marker(
         markerId: const MarkerId("src"),
-        position: _allRoutes[0]['sourceCoordinates'],
+        position: LatLng(
+          _allRoutes[0]['sourceCoordinates']['lat'],
+          _allRoutes[0]['sourceCoordinates']['long'],
+        ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
         infoWindow: InfoWindow(
           title: _allRoutes[0]['source'],
@@ -488,7 +493,10 @@ class _MapPageState extends ConsumerState<MapPage> {
 
       final destMarker = Marker(
         markerId: const MarkerId("dest"),
-        position: _allRoutes[_totalParcels - 1]['destinationCoordinates'],
+        position: LatLng(
+          _allRoutes[_totalParcels - 1]['destinationCoordinates']['lat'],
+          _allRoutes[_totalParcels - 1]['destinationCoordinates']['long'],
+        ),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         infoWindow: InfoWindow(
           title: _allRoutes[_totalParcels - 1]['destination'],
