@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:route_optima_mobile_app/models/trip.dart';
 
-final firestoreServiceProvider = Provider<FirestoreService>((ref) {
+final firestoreServiceProvider = Provider.autoDispose<FirestoreService>((ref) {
   return FirestoreService();
 });
 
@@ -115,7 +115,8 @@ class AssignedTripsNotifier extends StateNotifier<List<Trip>> {
 }
 
 final completedTripsNotifierProvider =
-    StateNotifierProvider<CompletedTripsNotifier, List<Trip>>((ref) {
+    StateNotifierProvider.autoDispose<CompletedTripsNotifier, List<Trip>>(
+        (ref) {
   final firestoreService = ref.read(firestoreServiceProvider);
   firestoreService.setupCompletedTripsListener(ref);
   return CompletedTripsNotifier();
@@ -134,31 +135,3 @@ class CompletedTripsNotifier extends StateNotifier<List<Trip>> {
     state = [...newTrips, ...state];
   }
 }
-
-// class TestScreen extends ConsumerWidget {
-//   const TestScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context, WidgetRef ref) {
-//     final trips = ref.watch(assignedTripsNotifierProvider);
-
-//     return Scaffold(
-//       // Also show the number of trips (length of the list)
-//       appBar: AppBar(
-//         backgroundColor: Colors.blue.shade900,
-//         centerTitle: true,
-//         title: const Text('Test'),
-//       ),
-//       body: ListView.builder(
-//         itemCount: trips.length,
-//         itemBuilder: (context, index) {
-//           final trip = trips[index];
-//           // Customize the ListTile as per your Trip model
-//           return ListTile(
-//             title: Text(trip.routeId), // Other details to display...
-//           );
-//         },
-//       ),
-//     );
-//   }
-// }
