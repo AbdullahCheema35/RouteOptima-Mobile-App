@@ -6,17 +6,19 @@ import 'package:route_optima_mobile_app/screens/completed_trips.dart';
 import 'package:route_optima_mobile_app/screens/drawer_widget.dart';
 
 class TripsPage extends StatefulWidget {
+  const TripsPage({super.key});
+
   @override
-  _TripsPageState createState() => _TripsPageState();
+  TripsPageState createState() => TripsPageState();
 }
 
-class _TripsPageState extends State<TripsPage> {
+class TripsPageState extends State<TripsPage> {
   int _currentIndex = 0;
   final _drawerTileIndex = 0;
 
   final List<Widget> _tabs = [
     const AssignedTrips(),
-    CompletedTripsScreen(),
+    const CompletedTripsScreen(),
   ];
 
   @override

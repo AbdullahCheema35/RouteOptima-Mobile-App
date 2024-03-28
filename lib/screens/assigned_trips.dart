@@ -5,7 +5,7 @@ import 'package:route_optima_mobile_app/models/parcel.dart';
 import 'package:route_optima_mobile_app/models/trip.dart';
 import 'package:route_optima_mobile_app/screens/no_trips_assigned.dart';
 import 'package:route_optima_mobile_app/screens/trip_containers.dart';
-import 'package:route_optima_mobile_app/services/assignment_subscription.dart';
+import 'package:route_optima_mobile_app/services/assignment_stream_provider.dart';
 
 class AssignedTrips extends ConsumerWidget {
   const AssignedTrips({super.key});
@@ -13,7 +13,7 @@ class AssignedTrips extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final AsyncValue<DocumentSnapshot> assignmentSnapshot =
-        ref.watch(assignmentSubscriptionProvider);
+        ref.watch(assignmentStreamProvider);
 
     return assignmentSnapshot.when(
       data: (assignmentData) {
@@ -106,7 +106,7 @@ List<Parcel> createParcelListFromResponse(List<dynamic> responseList) {
     final status = responseMap['status'];
 
     // Parse dueTime into ISO format and extract date components
-    final parsedDueTime = parseDateTime("3/18/2024 " + dueTime);
+    final parsedDueTime = parseDateTime("3/18/2024 $dueTime");
     final dueDate = parsedDueTime.day;
     final dueDay = parsedDueTime.weekday;
     final dueMonth = parsedDueTime.month;
@@ -115,7 +115,7 @@ List<Parcel> createParcelListFromResponse(List<dynamic> responseList) {
     final dueMinute = parsedDueTime.minute;
 
     // Assuming "receivedBy" is not provided by the API, set it to null
-    final receivedBy = "null";
+    const receivedBy = "null";
 
     return Parcel(
       name: name,

@@ -22,7 +22,7 @@ class RouteOptimaApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Route Optima Mobile App',
       home: TripsPage(),

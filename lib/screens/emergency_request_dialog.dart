@@ -2,17 +2,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:route_optima_mobile_app/gmapPages/firestore_services.dart';
 
 class EmergencyRequestDialog extends StatelessWidget {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _descriptionController = TextEditingController();
   String _selectedType = 'Puncture'; // Default selected type
 
-  EmergencyRequestDialog({required this.request, super.key});
-  EmergencyRequestType request;
+  EmergencyRequestDialog({required this.request, required this.ref, super.key});
+  final EmergencyRequestType request;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
@@ -115,8 +118,8 @@ class EmergencyRequestDialog extends StatelessWidget {
               // Update EmergencyRequestType object with the new data
               request.type = currentSelectedType;
               request.description = descriptionText;
-              final requestFuture =
-                  _sendEmergencyRequest(request); // Send emergency request
+              final requestFuture = uploadEmergencyRequest(
+                  request.riderId, request, ref); // Send emergency request
               showRequestStatusDialog(context, requestFuture);
               _formKey.currentState!.reset();
             }

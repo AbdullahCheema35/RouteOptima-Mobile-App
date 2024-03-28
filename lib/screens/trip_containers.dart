@@ -161,7 +161,7 @@ Container getNormalContainer(
                             MaterialPageRoute(
                               builder: (context) => ParcelListPage(
                                 parcelRefs: trips[index].parcelRefs,
-                                parcels: parcels,
+                                isAssignedList: isAssignedList,
                               ),
                             ),
                           );

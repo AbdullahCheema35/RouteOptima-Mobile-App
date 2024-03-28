@@ -46,7 +46,7 @@ class ParcelDetailsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             child: Text(
               parcel.status == 'pending'
-                  ? 'IN PROGRESS'
+                  ? 'PENDING'
                   : parcel.status == 'delivered'
                       ? "DELIVERED"
                       : "UNAVAILABLE",
@@ -132,7 +132,7 @@ class ParcelDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8.0),
                     const Text(
-                      'LOCATION',
+                      'ADDRESS',
                       style: TextStyle(
                           fontFamily: 'Roboto'), // Apply GoogleFont('Roboto')
                     ),
@@ -262,7 +262,7 @@ Widget receivingDetails(Parcel parcel) {
           ),
         ],
       ),
-      SizedBox(
+      const SizedBox(
         height: 16.0,
       ),
       Row(
@@ -276,7 +276,7 @@ Widget receivingDetails(Parcel parcel) {
           ),
         ],
       ),
-      SizedBox(
+      const SizedBox(
         height: 12.0,
       ),
       Row(

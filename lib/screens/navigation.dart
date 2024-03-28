@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Import Firestore
 import 'package:route_optima_mobile_app/gmapPages/map_page.dart';
+import 'package:route_optima_mobile_app/services/location_stream_provider.dart';
 
-class NavigationPage extends StatelessWidget {
+class NavigationPage extends ConsumerWidget {
   const NavigationPage({required this.userId, super.key});
 
   final String userId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -43,8 +44,8 @@ class NavigationPage extends StatelessWidget {
         ),
       ),
       backgroundColor: Colors.white,
-      body: FutureBuilder<List<dynamic>>(
-        future: getDataFromFirebase(userId),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: getDataFromFirebase(ref),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // While data is loading, display a loading indicator
@@ -53,15 +54,10 @@ class NavigationPage extends StatelessWidget {
             // If there's an error, display an error message
             return Text('Error: ${snapshot.error}');
           } else {
-            // Data is successfully loaded, pass it to MapPage
-            final Map<String, dynamic> locationData =
-                snapshot.data![0].data() as Map<String, dynamic>;
-            final Map<String, dynamic> assignmentsData =
-                snapshot.data![1].data() as Map<String, dynamic>;
+            // Once the data is loaded, display the map page
             return MapPage(
               userId: userId,
-              riderLocationData: locationData,
-              assignmentsData: assignmentsData,
+              riderLocationData: snapshot.data!,
             );
           }
         },
@@ -69,15 +65,9 @@ class NavigationPage extends StatelessWidget {
     );
   }
 
-  Future<List<dynamic>> getDataFromFirebase(String userId) async {
-    final locationDocSnapshot = FirebaseFirestore.instance
-        .collection('riderLocation')
-        .doc(userId)
-        .get();
-    final assignmentDocSnapshot =
-        FirebaseFirestore.instance.collection('assignments').doc(userId).get();
+  Future<Map<String, dynamic>> getDataFromFirebase(WidgetRef ref) async {
+    final locationDocSnapshot = await ref.read(locationStreamProvider.future);
 
-    // await on both Futures to get the data
-    return await Future.wait([locationDocSnapshot, assignmentDocSnapshot]);
+    return locationDocSnapshot.data() as Map<String, dynamic>;
   }
 }

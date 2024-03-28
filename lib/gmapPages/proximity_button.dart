@@ -6,7 +6,7 @@ class ProximityButton extends StatelessWidget {
   const ProximityButton({required this.onDelivered, super.key});
 
   // Store the passed callback function
-  final void Function(Map<String, dynamic>) onDelivered;
+  final Future<bool> Function(Map<String, dynamic>) onDelivered;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class ProximityButton extends StatelessWidget {
 }
 
 Future<void> _showDeliveryOptionsDialog(BuildContext context,
-    void Function(Map<String, dynamic>) onDelivered) async {
+    Future<bool> Function(Map<String, dynamic>) onDelivered) async {
   return showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -61,9 +61,16 @@ Future<void> _showDeliveryOptionsDialog(BuildContext context,
                     deliveryData['proof'] = downloadLink;
                     deliveryData['success'] = true;
 
-                    onDelivered(deliveryData);
+                    final isNextLocation = onDelivered(deliveryData);
 
-                    Navigator.pop(context);
+                    isNextLocation.then((value) {
+                      Navigator.pop(context);
+
+                      if (!value) {
+                        // Show dialog to user
+                        showAssignmentCompletionDialog(context);
+                      }
+                    });
                   }
                 });
               },
@@ -108,9 +115,16 @@ Future<void> _showDeliveryOptionsDialog(BuildContext context,
                         deliveryData['receiverName'] = receiverName;
                         deliveryData['success'] = true;
 
-                        onDelivered(deliveryData);
+                        final isNextLocation = onDelivered(deliveryData);
 
-                        Navigator.pop(context);
+                        isNextLocation.then((value) {
+                          Navigator.pop(context);
+
+                          if (!value) {
+                            // Show dialog to user
+                            showAssignmentCompletionDialog(context);
+                          }
+                        });
                       }
                     });
                   }
@@ -120,6 +134,31 @@ Future<void> _showDeliveryOptionsDialog(BuildContext context,
             ),
           ],
         ),
+      );
+    },
+  );
+}
+
+// Show assignment completion dialog to user
+void showAssignmentCompletionDialog(BuildContext context) {
+  // Show a dialog to the user
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Assignment Completed'),
+        content: const Text('All parcels have been delivered.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Pop two times to go back to the assignment details screen
+              Navigator.of(context)
+                ..pop()
+                ..pop();
+            },
+            child: const Text('Close'),
+          ),
+        ],
       );
     },
   );

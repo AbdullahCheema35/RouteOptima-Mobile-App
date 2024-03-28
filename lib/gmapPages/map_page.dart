@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:route_optima_mobile_app/consts/map_consts.dart';
@@ -16,23 +17,21 @@ import 'package:maps_toolkit/maps_toolkit.dart' as mp;
 import 'package:vibration/vibration.dart';
 import 'package:flutter_beep/flutter_beep.dart';
 
-class MapPage extends StatefulWidget {
+class MapPage extends ConsumerStatefulWidget {
   const MapPage({
     required this.userId,
     required this.riderLocationData,
-    required this.assignmentsData,
     super.key,
   });
 
-  final String userId;
   final Map<String, dynamic> riderLocationData;
-  final Map<String, dynamic> assignmentsData;
+  final String userId;
 
   @override
-  State<MapPage> createState() => _MapPageState();
+  ConsumerState<MapPage> createState() => _MapPageState();
 }
 
-class _MapPageState extends State<MapPage> {
+class _MapPageState extends ConsumerState<MapPage> {
   GoogleMapController? _gMapController;
 
   StreamSubscription<Position>? _positionStream;
@@ -60,7 +59,6 @@ class _MapPageState extends State<MapPage> {
   //--------------------------------- Now Actual Data Fields Below -----------------------------------------
 
   late final Map<String, dynamic> _riderLocationData;
-  late final Map<String, dynamic> _assignmentsData;
 
   late final String _userId;
 
@@ -86,11 +84,10 @@ class _MapPageState extends State<MapPage> {
     super.initState();
 
     // Initialize the fields with the data passed from the previous page
-    _userId = widget.userId;
     _riderLocationData = widget.riderLocationData;
-    _assignmentsData = widget.assignmentsData;
     _allRoutes = _riderLocationData['polylines'];
     _totalParcels = _allRoutes.length;
+    _userId = widget.userId;
 
     // Now initialize the fields with the data
     _setLocDataFieldsFromJson(_riderLocationData);
@@ -213,7 +210,7 @@ class _MapPageState extends State<MapPage> {
                             tooltip: 'Toggle Polyline',
                             child: _showAllRoutes == true
                                 ? const FaIcon(
-                                    FontAwesomeIcons.mapMarker,
+                                    FontAwesomeIcons.locationPin,
                                   )
                                 : const FaIcon(
                                     FontAwesomeIcons.layerGroup,
@@ -229,6 +226,7 @@ class _MapPageState extends State<MapPage> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: EmergencyRequestButton(
+                            ref: ref,
                             request: _getEmergencyRequestTypeObject(),
                           ),
                         ),
@@ -260,33 +258,41 @@ class _MapPageState extends State<MapPage> {
   }
 
   // Update the _assignmentsData fields
-  void onParcelDelivered(Map<String, dynamic> result) {
+  Future<bool> onParcelDelivered(Map<String, dynamic> result) async {
     // Update the assignmentsData with the result
-    print('');
-    print(result['success']);
-
     if (result['success'] == false) {
-      return;
+      return true;
     }
 
+    Map<String, dynamic> assignmentsData;
+
     if (result['confirmation'] == true) {
-      print('confirmation is true');
-      print('sign: ${result['sign']}');
-      print('cnic: ${result['cnic']}');
-      print('ReceiverName: ${result['receiverName']}');
+      // Additional Fields
+      result['deliveryProofLink'] = result['sign'];
+      result['actualStartTime'] = _startTime;
+      result['actualEndTime'] = DateTime.now();
       // Update the Firestore with the new status
+      assignmentsData = await updateFirestoreParcelStatus(
+          'delivered', result, _userId, _polylineId, ref,
+          receiverName: result['receiverName']);
     } else if (result['unavailable'] == true) {
-      print('unavailable is true');
-      print('proof: ${result['proof']}');
+      // Additional Fields
+      result['deliveryProofLink'] = result['proof'];
+      result['actualStartTime'] = _startTime;
+      result['actualEndTime'] = DateTime.now();
       // Update the Firestore with the new status
+      assignmentsData = await updateFirestoreParcelStatus(
+          'unavailable', result, _userId, _polylineId, ref);
+    } else {
+      return true;
     }
 
     // Move on to the next parcel
-    setNextLocationDetails();
+    return setNextLocationDetails(assignmentsData);
   }
 
   // Previous Parcel is delivered. Now onto the next one
-  void setNextLocationDetails() {
+  bool setNextLocationDetails(Map<String, dynamic> assignmentsData) {
     // Get the next location details from the riderLocation data
     // and set the fields accordingly
     // Also, generate the polyline from the current route
@@ -300,26 +306,11 @@ class _MapPageState extends State<MapPage> {
       _setLocDataFieldsFromJson(_riderLocationData);
       generateNextPolyLine();
       updateFirestorePolylineId(_polylineId, _userId);
+      return true;
     } else {
       // All parcels have been delivered
-      // Show a dialog to the user
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('All Parcels Delivered'),
-            content: const Text('All parcels have been delivered.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the dialog
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+      updateFirestoreAssignmentStatus("completed", _userId, assignmentsData);
+      return false;
     }
   }
 
@@ -563,6 +554,10 @@ class _MapPageState extends State<MapPage> {
 
       // If the user is not on the path, then do the following
       if (isOnPathResult == false) {
+        // Generate an emergency alert of rider deviation
+        // and send to the admin for further action
+        generateDeviationAlert(ref);
+
         // Beep the device
         FlutterBeep.playSysSound(AndroidSoundIDs.TONE_CDMA_ABBR_ALERT);
 
@@ -577,7 +572,7 @@ class _MapPageState extends State<MapPage> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text('Deviation Alert'),
+              title: const Text('Path Deviation Alert'),
               content: const Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -605,7 +600,8 @@ class _MapPageState extends State<MapPage> {
                       context: context,
                       builder: (BuildContext context) {
                         final request = _getEmergencyRequestTypeObject();
-                        return EmergencyRequestDialog(request: request);
+                        return EmergencyRequestDialog(
+                            request: request, ref: ref);
                       },
                     );
                   },
@@ -617,6 +613,18 @@ class _MapPageState extends State<MapPage> {
         );
       }
     }
+  }
+
+  void generateDeviationAlert(WidgetRef ref) {
+    // Generate an emergency alert of rider deviation
+    // and send to the admin for further action
+    final deviationAlert = _getEmergencyRequestTypeObject();
+
+    deviationAlert.type = "Path Deviation";
+    deviationAlert.description = "Rider has deviated from the given path.";
+
+    // Upload the deviation alert to Firestore
+    uploadEmergencyRequest(_userId, deviationAlert, ref);
   }
 
   EmergencyRequestType _getEmergencyRequestTypeObject() {
