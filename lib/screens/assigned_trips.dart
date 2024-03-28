@@ -102,7 +102,7 @@ List<Parcel> createParcelListFromResponse(List<dynamic> responseList) {
     final name = responseMap['receiver']['name'];
     final address = responseMap['receiver']['address'];
     final phone = responseMap['receiver']['phone'];
-    final dueTime = responseMap['due_time'];
+    final dueTime = responseMap['arrival_time'];
     final status = responseMap['status'];
     final lat = responseMap['location']['lat'];
     final long = responseMap['location']['long'];

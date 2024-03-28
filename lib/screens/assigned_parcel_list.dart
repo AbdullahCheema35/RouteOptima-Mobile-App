@@ -42,10 +42,20 @@ class AssignedParcelList extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ListView.builder(
-                  itemCount: parcelsList.length,
+                  itemCount: parcelsList.length + 2,
                   itemBuilder: (BuildContext context, int index) {
-                    return buildParcelContainer(
-                        context, parcelsList[index], index, parcelsList);
+                    if (index == parcelsList.length + 1) {
+                      return const SizedBox(height: 40.0);
+                    } else if (index == 0) {
+                      return const SizedBox(height: 20.0);
+                    } else {
+                      return buildParcelContainer(
+                        context,
+                        parcelsList[index - 1],
+                        index - 1,
+                        parcelsList,
+                      );
+                    }
                   },
                 ),
               ),

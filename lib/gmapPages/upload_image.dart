@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:route_optima_mobile_app/gmapPages/firebase_storage.dart';
 
 class TakePictureScreen extends StatefulWidget {
@@ -133,8 +135,10 @@ class DisplayPictureScreen extends StatelessWidget {
             IconButton(
               onPressed: () async {
                 // Save Image to cloud storage
-                String downloadURL = await uploadImage(imageBytes);
-                print('Image saved');
+                final futureObj = uploadImage(imageBytes);
+                await showImageStatusDialog(context, futureObj);
+                final downloadURL = await futureObj;
+                print('Image saved with url: $downloadURL');
 
                 // 1 if image uploaded, 0 if canceled, -1 if retake
                 Map<String, dynamic> result = {
@@ -165,4 +169,76 @@ class DisplayPictureScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> showImageStatusDialog(
+    BuildContext context, Future<String> futureObj) {
+  return showDialog<void>(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(
+          'Uploading Delivery Proof to Firebase',
+          style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+        ),
+        content: FutureBuilder<String>(
+          future: futureObj,
+          builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 4, // Adjust the thickness of the circle
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Uploading. Please wait...',
+                    style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+                  ),
+                ],
+              );
+            } else if (snapshot.connectionState == ConnectionState.done &&
+                !snapshot.hasError) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const FaIcon(
+                    FontAwesomeIcons.circleCheck,
+                    color: Colors.green,
+                    size: 50,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Delivery Proof Sent Successfully',
+                    style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+                  ),
+                ],
+              );
+            } else {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const FaIcon(
+                    FontAwesomeIcons.circleXmark,
+                    color: Colors.red,
+                    size: 50,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Error during upload: ${snapshot.error}',
+                    style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+                  ),
+                ],
+              );
+            }
+          },
+        ),
+      );
+    },
+  );
 }

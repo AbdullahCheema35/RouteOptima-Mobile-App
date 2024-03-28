@@ -36,10 +36,17 @@ class CompletedParceslList extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.all(8.0),
             child: ListView.builder(
-              itemCount: snapshot.data!.length,
+              itemCount: snapshot.data!.length + 1,
               itemBuilder: (BuildContext context, int index) {
+                if (index == 0) {
+                  return const SizedBox(height: 20.0);
+                }
                 return buildParcelContainer(
-                    context, snapshot.data![index], index, snapshot.data!);
+                  context,
+                  snapshot.data![index - 1],
+                  index - 1,
+                  snapshot.data!,
+                );
               },
             ),
           );

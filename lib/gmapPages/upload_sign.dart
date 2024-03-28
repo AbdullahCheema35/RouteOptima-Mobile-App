@@ -1,215 +1,6 @@
-// import 'package:flutter/material.dart';
-// import 'package:route_optima_mobile_app/gmapPages/firebase_storage.dart';
-// import 'package:signature/signature.dart';
-
-// class SignaturePage extends StatefulWidget {
-//   const SignaturePage({super.key});
-
-//   @override
-//   State<SignaturePage> createState() => _SignaturePageState();
-// }
-
-// class _SignaturePageState extends State<SignaturePage> {
-//   late final SignatureController _controller;
-//   final penStrokeWidth = 5.0;
-//   final penColor = Colors.black;
-//   final bgColor = Colors.white;
-
-//   @override
-//   void initState() {
-//     super.initState();
-
-//     // Initialize the signature controller
-//     _controller = SignatureController(
-//       penStrokeWidth: penStrokeWidth,
-//       penColor: penColor,
-//       exportBackgroundColor: bgColor,
-//     );
-//   }
-
-//   @override
-//   void dispose() {
-//     _controller.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Capture Signature'),
-//       ),
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             Signature(
-//               controller: _controller,
-//               height: 200,
-//               backgroundColor: bgColor,
-//             ),
-//             const SizedBox(height: 20),
-//             Row(
-//               mainAxisAlignment: MainAxisAlignment.center,
-//               children: [
-//                 ElevatedButton(
-//                   onPressed: () {
-//                     Map<String, dynamic> result = {
-//                       'success': false,
-//                     };
-//                     // Close the signature page
-//                     Navigator.pop(context, result);
-//                   },
-//                   child: const Text('Cancel'),
-//                 ),
-//                 const SizedBox(width: 20),
-//                 ElevatedButton(
-//                   onPressed: () {
-//                     // Clear the signature
-//                     _controller.clear();
-//                   },
-//                   child: const Text('Reset'),
-//                 ),
-//                 const SizedBox(width: 20),
-//                 ElevatedButton(
-//                   onPressed: () async {
-//                     final downloadURL =
-//                         await uploadSignature(await _controller.toPngBytes());
-//                     print('Signature saved');
-
-//                     Map<String, dynamic> result = {
-//                       'success': true,
-//                       'link': downloadURL,
-//                     };
-
-//                     // Return the download URL and close the signature page
-//                     Navigator.pop(context, result);
-//                   },
-//                   child: const Text('Save'),
-//                 ),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// import 'package:flutter/material.dart';
-// import 'package:route_optima_mobile_app/gmapPages/firebase_storage.dart';
-// import 'package:signature/signature.dart';
-
-// class SignaturePage extends StatefulWidget {
-//   const SignaturePage({Key? key}) : super(key: key);
-
-//   @override
-//   State<SignaturePage> createState() => _SignaturePageState();
-// }
-
-// class _SignaturePageState extends State<SignaturePage> {
-//   late final SignatureController _controller;
-//   final penStrokeWidth = 5.0;
-//   final penColor = Colors.black;
-//   final bgColor = Colors.white;
-
-//   TextEditingController nameController = TextEditingController();
-
-//   @override
-//   void initState() {
-//     super.initState();
-
-//     // Initialize the signature controller
-//     _controller = SignatureController(
-//       penStrokeWidth: penStrokeWidth,
-//       penColor: penColor,
-//       exportBackgroundColor: bgColor,
-//     );
-//   }
-
-//   @override
-//   void dispose() {
-//     _controller.dispose();
-//     nameController.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Capture Signature'),
-//       ),
-//       body: Center(
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             Container(
-//               decoration: BoxDecoration(
-//                 border: Border.all(color: Colors.black, width: 2.0),
-//                 borderRadius: BorderRadius.circular(10.0),
-//               ),
-//               child: Signature(
-//                 controller: _controller,
-//                 height: 200,
-//                 backgroundColor: bgColor,
-//               ),
-//             ),
-//             const SizedBox(height: 20),
-//             Padding(
-//               padding: const EdgeInsets.symmetric(horizontal: 20),
-//               child: TextField(
-//                 controller: nameController,
-//                 decoration: InputDecoration(labelText: 'Client Name'),
-//               ),
-//             ),
-//             const SizedBox(height: 20),
-//             Row(
-//               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//               children: [
-//                 ElevatedButton(
-//                   onPressed: () {
-//                     Map<String, dynamic> result = {'success': false};
-//                     // Close the signature page
-//                     Navigator.pop(context, result);
-//                   },
-//                   child: const Text('Cancel'),
-//                 ),
-//                 ElevatedButton(
-//                   onPressed: () {
-//                     // Clear the signature
-//                     _controller.clear();
-//                   },
-//                   child: const Text('Reset'),
-//                 ),
-//                 ElevatedButton(
-//                   onPressed: () async {
-//                     final downloadURL =
-//                         await uploadSignature(await _controller.toPngBytes());
-//                     print('Signature saved');
-
-//                     Map<String, dynamic> result = {
-//                       'success': true,
-//                       'link': downloadURL,
-//                       'name': nameController.text,
-//                     };
-
-//                     // Return the download URL and close the signature page
-//                     Navigator.pop(context, result);
-//                   },
-//                   child: const Text('Save'),
-//                 ),
-//               ],
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:route_optima_mobile_app/gmapPages/firebase_storage.dart';
+import 'package:route_optima_mobile_app/gmapPages/upload_image.dart';
 import 'package:signature/signature.dart';
 
 class SignaturePage extends StatefulWidget {
@@ -306,6 +97,8 @@ class _SignaturePageState extends State<SignaturePage> {
                   onPressed: () {
                     // Clear the signature
                     _controller.clear();
+                    // Clear the name field
+                    nameController.clear();
                   },
                   child: const Text('Reset'),
                 ),
@@ -332,9 +125,15 @@ class _SignaturePageState extends State<SignaturePage> {
                       return;
                     }
 
+                    final futureObj =
+                        uploadSignature(await _controller.toPngBytes());
+                    // Show the status dialog while the signature is being saved
+                    await showImageStatusDialog(context, futureObj);
+
+                    // Wait for the signature to be saved
                     final downloadURL =
-                        await uploadSignature(await _controller.toPngBytes());
-                    print('Signature saved');
+                        await futureObj; // Save the signature to cloud storage
+                    print('Signature saved with URL: $downloadURL');
 
                     Map<String, dynamic> result = {
                       'success': true,

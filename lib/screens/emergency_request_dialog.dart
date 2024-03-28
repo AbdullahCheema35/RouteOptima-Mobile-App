@@ -134,8 +134,9 @@ class EmergencyRequestDialog extends StatelessWidget {
     );
   }
 
-  void showRequestStatusDialog(BuildContext context, Future<void> futureObj) {
-    showDialog(
+  Future<void> showRequestStatusDialog(
+      BuildContext context, Future<void> futureObj) {
+    return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(

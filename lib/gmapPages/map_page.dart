@@ -79,6 +79,9 @@ class _MapPageState extends ConsumerState<MapPage> {
   late DateTime _startTime;
   bool _showAllRoutes = false;
 
+  // Markers for the map
+  Map<String, Marker> markers = {};
+
   @override
   void initState() {
     super.initState();
@@ -141,26 +144,7 @@ class _MapPageState extends ConsumerState<MapPage> {
                     target: _currentP!,
                     zoom: defaultZoom,
                   ),
-                  markers: {
-                    Marker(
-                      markerId: const MarkerId("srcLoc"),
-                      icon: BitmapDescriptor.defaultMarkerWithHue(
-                          BitmapDescriptor.hueGreen),
-                      position: _srcCoord,
-                      infoWindow: InfoWindow(
-                        title: _srcAddr,
-                      ),
-                    ),
-                    Marker(
-                      markerId: const MarkerId("destLoc"),
-                      icon: BitmapDescriptor.defaultMarkerWithHue(
-                          BitmapDescriptor.hueRed),
-                      position: _destCoord,
-                      infoWindow: InfoWindow(
-                        title: _destAddr,
-                      ),
-                    ),
-                  },
+                  markers: Set<Marker>.of(markers.values),
                   circles: Set<Circle>.of(circles.values),
                   polylines: Set<Polyline>.of(polylines.values),
                   zoomGesturesEnabled: true,
@@ -169,7 +153,11 @@ class _MapPageState extends ConsumerState<MapPage> {
                   myLocationButtonEnabled: false,
                   onLongPress: (LatLng latLng) async {
                     // Set zoom level to default
-                    _zoom = defaultZoom;
+                    if (_zoom - 3 >= defaultZoom) {
+                      _zoom = defaultZoom;
+                    } else {
+                      _zoom = _zoom - 2 < 0 ? 0 : _zoom - 2;
+                    }
 
                     CameraPosition newCameraPosition = CameraPosition(
                       target: latLng,
@@ -424,10 +412,33 @@ class _MapPageState extends ConsumerState<MapPage> {
       final currentLocationCircle = circles[0];
       circles.clear();
 
+      // Change the markers
+      final srcMarker = Marker(
+        markerId: const MarkerId("src"),
+        position: _srcCoord,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        infoWindow: InfoWindow(
+          title: _srcAddr,
+          snippet: 'Source Address',
+        ),
+      );
+
+      final destMarker = Marker(
+        markerId: const MarkerId("dest"),
+        position: _destCoord,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: InfoWindow(
+          title: _destAddr,
+          snippet: 'Destination Address',
+        ),
+      );
+
       setState(() {
         _showAllRoutes = !_showAllRoutes;
         polylines[id] = currentPolylineObj!;
         circles[0] = currentLocationCircle!;
+        markers['src'] = srcMarker;
+        markers['dest'] = destMarker;
       });
     } else {
       // Now change to all routes
@@ -464,10 +475,33 @@ class _MapPageState extends ConsumerState<MapPage> {
         polylines[id] = polyline;
       }
 
+      // Update the markers
+      final srcMarker = Marker(
+        markerId: const MarkerId("src"),
+        position: _allRoutes[0]['sourceCoordinates'],
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        infoWindow: InfoWindow(
+          title: _allRoutes[0]['source'],
+          snippet: 'Warehouse Address',
+        ),
+      );
+
+      final destMarker = Marker(
+        markerId: const MarkerId("dest"),
+        position: _allRoutes[_totalParcels - 1]['destinationCoordinates'],
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: InfoWindow(
+          title: _allRoutes[_totalParcels - 1]['destination'],
+          snippet: 'Last Destination Address',
+        ),
+      );
+
       setState(() {
         _showAllRoutes = !_showAllRoutes;
         circles;
         polylines;
+        markers['src'] = srcMarker;
+        markers['dest'] = destMarker;
       });
     }
   }
@@ -490,8 +524,32 @@ class _MapPageState extends ConsumerState<MapPage> {
         zIndex: 1,
       );
 
+      // Update markers
+      // Add the source and destination markers
+      final srcMarker = Marker(
+        markerId: const MarkerId("src"),
+        position: _srcCoord,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        infoWindow: InfoWindow(
+          title: _srcAddr,
+          snippet: 'Source Address',
+        ),
+      );
+
+      final destMarker = Marker(
+        markerId: const MarkerId("dest"),
+        position: _destCoord,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: InfoWindow(
+          title: _destAddr,
+          snippet: 'Destination Address',
+        ),
+      );
+
       // Show the polyline on the map
       setState(() {
+        markers['src'] = srcMarker;
+        markers['dest'] = destMarker;
         polylines[id] = polyline;
       });
     } else {
