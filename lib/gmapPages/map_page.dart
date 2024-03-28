@@ -281,7 +281,7 @@ class _MapPageState extends ConsumerState<MapPage> {
 
     if (result['confirmation'] == true) {
       // Additional Fields
-      result['deliveryProofLink'] = result['sign'];
+      result['deliveryProofLink'] = [result['cnic'], result['sign']];
       result['actualStartTime'] = _startTime;
       result['actualEndTime'] = DateTime.now();
       // Update the Firestore with the new status
@@ -290,7 +290,7 @@ class _MapPageState extends ConsumerState<MapPage> {
           receiverName: result['receiverName']);
     } else if (result['unavailable'] == true) {
       // Additional Fields
-      result['deliveryProofLink'] = result['proof'];
+      result['deliveryProofLink'] = [result['proof']];
       result['actualStartTime'] = _startTime;
       result['actualEndTime'] = DateTime.now();
       // Update the Firestore with the new status
