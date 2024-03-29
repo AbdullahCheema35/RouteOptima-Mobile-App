@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:route_optima_mobile_app/gmapPages/firebase_storage.dart';
 import 'package:route_optima_mobile_app/gmapPages/upload_image.dart';
 import 'package:signature/signature.dart';
@@ -42,7 +43,9 @@ class _SignaturePageState extends State<SignaturePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Capture Signature'),
+        title: const Text('Upload Signature'),
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         // Enclose content in SingleChildScrollView for scrolling on smaller screens
@@ -53,6 +56,22 @@ class _SignaturePageState extends State<SignaturePage> {
           crossAxisAlignment:
               CrossAxisAlignment.center, // Center elements horizontally
           children: [
+            // Left Aligned Heading for the signature area
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Sign below to confirm delivery',
+                // Use Google Fonts for a more appealing look
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 20.0,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
             // Signature area with a decorated container
             Container(
               decoration: BoxDecoration(
@@ -66,23 +85,42 @@ class _SignaturePageState extends State<SignaturePage> {
                 backgroundColor: bgColor,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 40),
+
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Enter Receiver\'s Name',
+                // Use Google Fonts for a more appealing look
+                style: GoogleFonts.roboto(
+                  fontWeight: FontWeight.w400,
+                  fontSize: 20.0,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
 
             // Text field for client name
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
-                labelText: 'Receiver\'s Name',
+                labelText: 'Muhammad Abdullah',
                 border: OutlineInputBorder(),
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.black,
+                  ),
                   onPressed: () {
                     Map<String, dynamic> result = {
                       'success': false,
@@ -94,6 +132,10 @@ class _SignaturePageState extends State<SignaturePage> {
                 ),
                 const SizedBox(width: 20),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.black,
+                  ),
                   onPressed: () {
                     // Clear the signature
                     _controller.clear();
@@ -104,6 +146,10 @@ class _SignaturePageState extends State<SignaturePage> {
                 ),
                 const SizedBox(width: 20),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.black,
+                  ),
                   onPressed: () async {
                     if (nameController.text.isEmpty) {
                       // If the name field is empty, display an error message

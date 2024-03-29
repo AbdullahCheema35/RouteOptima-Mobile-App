@@ -32,11 +32,15 @@ Future<void> _showDeliveryOptionsDialog(BuildContext context,
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text("Delivery Options"),
+        title: const Text("Update Delivery Status"),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.black,
+              ),
               onPressed: () {
                 Map<String, dynamic> deliveryData = {
                   'confirmation': false,
@@ -49,7 +53,7 @@ Future<void> _showDeliveryOptionsDialog(BuildContext context,
                   context,
                   MaterialPageRoute<Map<String, dynamic>>(
                     builder: (context) => const TakePictureScreen(
-                      title: "Capture Unavailability Proof",
+                      title: "Upload Unavailability Proof",
                     ),
                   ),
                 ).then((value) {
@@ -74,9 +78,13 @@ Future<void> _showDeliveryOptionsDialog(BuildContext context,
                   }
                 });
               },
-              child: const Text("Capture Unavailability Proof"),
+              child: const Text("Customer Unavailable"),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.black,
+              ),
               onPressed: () async {
                 Map<String, dynamic> deliveryData = {
                   'confirmation': true,
@@ -97,7 +105,7 @@ Future<void> _showDeliveryOptionsDialog(BuildContext context,
                       context,
                       MaterialPageRoute<Map<String, dynamic>>(
                         builder: (context) => const TakePictureScreen(
-                          title: "Take CNIC Proof",
+                          title: "Upload CNIC",
                         ),
                       ),
                     ).then((cnicValue) {
@@ -130,7 +138,7 @@ Future<void> _showDeliveryOptionsDialog(BuildContext context,
                   }
                 });
               },
-              child: const Text("Confirm Delivery"),
+              child: const Text("Delivered Successfully"),
             ),
           ],
         ),

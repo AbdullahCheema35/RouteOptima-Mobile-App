@@ -50,6 +50,8 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: FutureBuilder<void>(
         future: _initializeControllerFuture,
@@ -62,6 +64,8 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.black,
         heroTag: null,
         onPressed: () async {
           try {
@@ -72,11 +76,15 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
 
             if (!context.mounted) return;
 
+            final nextTitle = widget.title == 'Upload Unavailability Proof'
+                ? 'Preview Unavailability Proof'
+                : 'Preview CNIC';
+
             Navigator.push(
               context,
               MaterialPageRoute<Map<String, dynamic>>(
                 builder: (context) => DisplayPictureScreen(
-                  title: widget.title,
+                  title: nextTitle,
                   imageBytes: imageBytes,
                 ),
               ),
@@ -115,6 +123,8 @@ class DisplayPictureScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(title),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: Image.memory(imageBytes),
       bottomNavigationBar: BottomAppBar(
