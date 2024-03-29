@@ -26,10 +26,11 @@ Widget routeOptimaDrawerWidget(
           ),
           accountName: Text(
             riderName,
-            style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
+            style: GoogleFonts.roboto(
+                fontSize: 20.0), // Apply GoogleFont('Roboto')
           ),
           accountEmail: Text(
-            'IrfanKhan123@gmail.com',
+            'example@gmail.com',
             style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
           ),
           currentAccountPicture: const CircleAvatar(
@@ -53,7 +54,9 @@ Widget routeOptimaDrawerWidget(
             if (tileIndex != 0) {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => TripsPage()),
+                MaterialPageRoute(
+                  builder: (context) => const TripsPage(),
+                ),
               );
             }
           },

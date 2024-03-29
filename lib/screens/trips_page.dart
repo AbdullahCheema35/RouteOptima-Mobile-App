@@ -41,7 +41,36 @@ class TripsPageState extends ConsumerState<TripsPage> {
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0.0),
-        child: _tabs[_currentIndex],
+        child: Stack(
+          children: [
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: FractionallySizedBox(
+                widthFactor: 1.0, // Occupy full width
+                heightFactor:
+                    0.9, // Adjust the fraction of the screen height as needed (e.g., 0.3 for 30%)// Background Image
+                child: Opacity(
+                  opacity: 0.3, // Adjust opacity as needed
+                  child: Transform.scale(
+                    scale: 0.6, // Image scaling factor
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(
+                              'assets/background/qkgf_i2gc_210525.jpg'),
+                        ),
+                        // Make it a little smaller
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Actual Page Content
+            _tabs[_currentIndex],
+          ],
+        ),
       ),
       bottomNavigationBar: Column(
         mainAxisSize: MainAxisSize.min,
