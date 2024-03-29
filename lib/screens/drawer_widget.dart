@@ -5,7 +5,8 @@ import 'package:route_optima_mobile_app/screens/dashboard.dart';
 import 'package:route_optima_mobile_app/screens/rider_selection.dart';
 import 'package:route_optima_mobile_app/screens/trips_page.dart';
 
-Widget routeOptimaDrawerWidget(BuildContext context, int tileIndex) {
+Widget routeOptimaDrawerWidget(
+    BuildContext context, int tileIndex, String riderName) {
   // tileIndex: 0 -> ViewTrips
   // tileIndex: 1 -> Dashboard
   // tileIndex: 2 -> Settings/RiderSelection
@@ -24,7 +25,7 @@ Widget routeOptimaDrawerWidget(BuildContext context, int tileIndex) {
             ),
           ),
           accountName: Text(
-            'Irfan Khan',
+            riderName,
             style: GoogleFonts.roboto(), // Apply GoogleFont('Roboto')
           ),
           accountEmail: Text(

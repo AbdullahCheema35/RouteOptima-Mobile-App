@@ -31,7 +31,8 @@ class RiderSelectionPage extends ConsumerWidget {
         ),
       ),
       //Drawer
-      drawer: routeOptimaDrawerWidget(context, _drawerTileIndex),
+      drawer: routeOptimaDrawerWidget(
+          context, _drawerTileIndex, selectedRider.name),
       //body
       body: ListView.builder(
         itemCount: riders.length,

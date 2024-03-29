@@ -1,19 +1,21 @@
 // DashboardPage.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:route_optima_mobile_app/charts/distance_barchart.dart';
 import 'package:route_optima_mobile_app/charts/ontime_piechart.dart';
 import 'package:route_optima_mobile_app/screens/drawer_widget.dart';
+import 'package:route_optima_mobile_app/services/rider_selection.dart';
 import 'package:route_optima_mobile_app/services/stat_generator.dart';
 import 'package:route_optima_mobile_app/charts/working_hours_barchart.dart';
 
-class DashboardPage extends StatefulWidget {
+class DashboardPage extends ConsumerStatefulWidget {
   const DashboardPage({super.key});
 
   @override
-  _DashboardPageState createState() => _DashboardPageState();
+  DashboardPageState createState() => DashboardPageState();
 }
 
-class _DashboardPageState extends State<DashboardPage> {
+class DashboardPageState extends ConsumerState<DashboardPage> {
   final _drawerTileIndex = 1;
   bool showMonth = true; // Default value for toggling between month and year
   Map<String, dynamic> currentStatsData =
@@ -21,6 +23,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final riderName = ref.watch(riderNotifierProvider).name;
+
     int onTime = 0;
     int late = 0;
     currentStatsData.forEach((year, data) {
@@ -43,7 +47,7 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
       //Drawer
-      drawer: routeOptimaDrawerWidget(context, _drawerTileIndex),
+      drawer: routeOptimaDrawerWidget(context, _drawerTileIndex, riderName),
       //body
       body: SingleChildScrollView(
         child: Column(

@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:route_optima_mobile_app/screens/assigned_trips.dart';
 import 'package:route_optima_mobile_app/screens/completed_trips.dart';
 import 'package:route_optima_mobile_app/screens/drawer_widget.dart';
+import 'package:route_optima_mobile_app/services/rider_selection.dart';
 
-class TripsPage extends StatefulWidget {
+class TripsPage extends ConsumerStatefulWidget {
   const TripsPage({super.key});
 
   @override
   TripsPageState createState() => TripsPageState();
 }
 
-class TripsPageState extends State<TripsPage> {
+class TripsPageState extends ConsumerState<TripsPage> {
   int _currentIndex = 0;
   final _drawerTileIndex = 0;
 
@@ -23,6 +25,7 @@ class TripsPageState extends State<TripsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final riderName = ref.watch(riderNotifierProvider).name;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -34,7 +37,7 @@ class TripsPageState extends State<TripsPage> {
               GoogleFonts.roboto(fontSize: 24.0, fontWeight: FontWeight.w600),
         ),
       ),
-      drawer: routeOptimaDrawerWidget(context, _drawerTileIndex),
+      drawer: routeOptimaDrawerWidget(context, _drawerTileIndex, riderName),
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0.0),
